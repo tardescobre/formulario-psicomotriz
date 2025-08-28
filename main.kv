@@ -1,0 +1,27 @@
+<Formulario>:
+    orientation: 'vertical'
+    padding: 10
+    spacing: 10
+
+    TextInput:
+        id: nombre
+        hint_text: "Nombre del paciente"
+        size_hint_y: None
+        height: 40
+
+    BoxLayout:
+        id: sliders_box
+        orientation: 'vertical'
+        spacing: 10
+
+    Label:
+        id: resultado
+        text: ""
+        size_hint_y: None
+        height: 30
+
+    Button:
+        text: "Enviar"
+        size_hint_y: None
+        height: 40
+        on_press: root.enviar()
