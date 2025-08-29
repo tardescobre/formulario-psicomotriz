@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulario de Ingreso</title>
+</head>
+<body>
+    <h1>Formulario de Ingreso</h1>
+    <form method="post">
+        <label>Nombre:</label><br>
+        <input type="text" name="nombre" required><br><br>
+
+        <label>Documento:</label><br>
+        <input type="text" name="documento"><br><br>
+
+        <label>Edad:</label><br>
+        <input type="number" name="edad"><br><br>
+
+        <label>Sexo:</label><br>
+        <select name="sexo">
+            <option value="">--Seleccionar--</option>
+            <option>Masculino</option>
+            <option>Femenino</option>
+            <option>Otro</option>
+        </select><br><br>
+
+        <label>Derivado:</label><br>
+        <input type="text" name="derivado"><br><br>
+
+        <label>Fuente de derivación:</label><br>
+        <input type="text" name="fuente_derivacion"><br><br>
+
+        <label>Motivo de consulta:</label><br>
+        <textarea name="motivo"></textarea><br><br>
+
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

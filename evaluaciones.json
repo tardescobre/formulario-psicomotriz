@@ -1,0 +1,46 @@
+[
+    {
+        "nombre": "Diego",
+        "puntaje": 10
+    },
+    {
+        "nombre": "diego",
+        "puntajes": {
+            "coordinacion": 7,
+            "equilibrio": 4,
+            "atencion": 3
+        }
+    },
+    {
+        "nombre": "jorgito",
+        "puntajes": {
+            "coordinacion": 2,
+            "equilibrio": 5,
+            "atencion": 4
+        }
+    },
+    {
+        "nombre": "diego",
+        "puntajes": {
+            "coordinacion": 4,
+            "equilibrio": 5,
+            "atencion": 5
+        }
+    },
+    {
+        "nombre": "jorgito",
+        "puntajes": {
+            "coordinacion": 4,
+            "equilibrio": 5,
+            "atencion": 6
+        }
+    },
+    {
+        "nombre": "hhd",
+        "puntajes": {
+            "coordinacion": 4,
+            "equilibrio": 5,
+            "atencion": 8
+        }
+    }
+]
