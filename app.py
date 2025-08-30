@@ -21,12 +21,31 @@ if not os.path.exists(DATA_FOLDER):
 # ----------------------------
 # Pestañas / páginas
 # ----------------------------
-tabs = st.tabs(["Datos Paciente", "Antecedentes", "Tests", "Seguimiento del proceso", "Guardar evaluación"])
+tabs = st.tabs(["Lista", "Datos Paciente", "Antecedentes", "Tests", "Seguimiento del proceso", "Guardar evaluación"])
+
+# ----------------------------
+# 0️⃣ Lista de pacientes editable
+# ----------------------------
+with tabs[0]:
+    st.title("Lista de pacientes")
+    
+    # Crear DataFrame vacío al inicio si no existe
+    if "df_lista" not in st.session_state:
+        st.session_state.df_lista = pd.DataFrame(columns=["Nombre", "Día", "Hora"])
+    
+    # Mostrar tabla editable
+    st.session_state.df_lista = st.data_editor(
+        st.session_state.df_lista,
+        num_rows="dynamic",
+        use_container_width=True
+    )
+    
+    st.info("Agrega los pacientes con su nombre, día y hora de consulta. Los cambios se pueden editar en esta tabla.")
 
 # ----------------------------
 # 1️⃣ Datos del Paciente
 # ----------------------------
-with tabs[0]:
+with tabs[1]:
     st.title("Datos necesarios en la clínica Psicomotriz")
     
     with st.form("form_paciente"):
@@ -53,7 +72,7 @@ with tabs[0]:
 # ----------------------------
 # 2️⃣ Antecedentes
 # ----------------------------
-with tabs[1]:
+with tabs[2]:
     st.header("Antecedentes")
     with st.form("form_antecedentes"):
         antecedentes = st.text_area("Ingrese los antecedentes del paciente")
@@ -74,7 +93,7 @@ with tabs[1]:
 # ----------------------------
 # 3️⃣ Tests psicomotrices
 # ----------------------------
-with tabs[2]:
+with tabs[3]:
     st.header("Tests psicomotrices")
     
     tests_disponibles = [
@@ -103,7 +122,7 @@ with tabs[2]:
 # ----------------------------
 # 4️⃣ Seguimiento del proceso
 # ----------------------------
-with tabs[3]:
+with tabs[4]:
     st.header("Seguimiento del proceso")
     
     with st.form("form_seguimiento"):
@@ -135,7 +154,7 @@ with tabs[3]:
 # ----------------------------
 # 5️⃣ Guardar evaluación
 # ----------------------------
-with tabs[4]:
+with tabs[5]:
     st.header("Guardar evaluación completa")
     with st.form("form_guardar"):
         comentario_final = st.text_area("Comentarios finales antes de guardar evaluación")
