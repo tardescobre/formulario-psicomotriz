@@ -21,7 +21,7 @@ if not os.path.exists(DATA_FOLDER):
 # ----------------------------
 # Pestañas / páginas
 # ----------------------------
-tabs = st.tabs(["Lista", "Datos Paciente", "Antecedentes", "Tests", "Seguimiento del proceso", "Guardar evaluación"])
+tabs = st.tabs(["Lista", "Datos Paciente", "Antecedentes", "Tests", "Seguimiento del proceso", "Guardar evaluación", "Cuestionario de validación"])
 
 # ----------------------------
 # 0️⃣ Lista de pacientes editable
@@ -161,6 +161,36 @@ with tabs[5]:
         submitted_final = st.form_submit_button("Guardar evaluación")
         if submitted_final:
             st.success("Evaluación completa guardada correctamente!")
+
+# 6️⃣ Cuestionario de validación
+# ----------------------------
+with tabs[6]:
+    st.header("Cuestionario de validación de formulario digital")
+    with st.form("form_validacion"):
+        st.subheader("1️⃣ Usabilidad / Experiencia de usuario")
+        facil_uso = st.radio("¿Le resulta fácil de usar este formulario digital?", ["Sí", "Parcialmente", "No"])
+        flujo_claro = st.radio("¿Se entiende claramente el flujo de ingreso de información?", ["Sí", "Parcialmente", "No"])
+        dificultades = st.text_area("¿Qué dificultades encontró al completar los campos?")
+
+        st.subheader("2️⃣ Utilidad profesional")
+        utilidad = st.radio("¿Este formulario digital le facilitaría su trabajo comparado con el método actual (papel)?", ["Mucho", "Algo", "Nada"])
+        campos_utiles = st.text_area("¿Qué campos considera más útiles para su labor diaria?")
+        faltan_datos = st.text_area("¿Faltan datos importantes que normalmente recogen de otra manera?")
+
+        st.subheader("3️⃣ Mejoras al formulario")
+        mejoras = st.text_area("¿Qué agregarían o modificarían en las secciones existentes? (Datos del paciente, Antecedentes, Prueba Koppitz, Observaciones)")
+        orden = st.text_area("¿Cambiarían el orden de los campos para que sea más lógico?")
+        alertas = st.text_area("¿Agregarían algún tipo de alerta, nota o comentario para pacientes específicos?")
+
+        st.subheader("4️⃣ Retroalimentación general")
+        gusto = st.text_area("¿Qué le gustó del formulario?")
+        cambios = st.text_area("¿Qué cambiaría para que sea más eficiente o confiable?")
+        recomendacion = st.slider("En una escala del 1 al 5, ¿recomendaría este formulario digital a colegas?", 1, 5, 3)
+        otros = st.text_area("Otros comentarios o sugerencias:")
+
+        submitted_validacion = st.form_submit_button("Enviar feedback")
+        if submitted_validacion:
+            st.success("¡Gracias por tu feedback! Tus respuestas han sido registradas.")
 
 
 
