@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 import os
+import urllib.parse
 
 # ----------------------------
 # Configuración de la página
@@ -21,7 +22,11 @@ if not os.path.exists(DATA_FOLDER):
 # ----------------------------
 # Pestañas / páginas
 # ----------------------------
-tabs = st.tabs(["Lista", "Datos Paciente", "Antecedentes", "Tests", "Seguimiento del proceso", "Guardar evaluación"])
+tabs = st.tabs([
+    "Lista", "Datos Paciente", "Antecedentes",
+    "Tests", "Seguimiento del proceso", "Guardar evaluación",
+    "✅ Cuestionario de validación"
+])
 
 # ----------------------------
 # 0️⃣ Lista de pacientes editable
@@ -29,11 +34,9 @@ tabs = st.tabs(["Lista", "Datos Paciente", "Antecedentes", "Tests", "Seguimiento
 with tabs[0]:
     st.title("Lista de pacientes")
     
-    # Crear DataFrame vacío al inicio si no existe
     if "df_lista" not in st.session_state:
         st.session_state.df_lista = pd.DataFrame(columns=["Nombre", "Día", "Hora"])
     
-    # Mostrar tabla editable
     st.session_state.df_lista = st.data_editor(
         st.session_state.df_lista,
         num_rows="dynamic",
@@ -66,7 +69,10 @@ with tabs[1]:
                 "Observaciones iniciales": observaciones_iniciales
             }
             df_paciente = pd.DataFrame([paciente_data])
-            df_paciente.to_csv(os.path.join(DATA_FOLDER, f"paciente_{nombre}_{fecha}.csv"), index=False)
+            df_paciente.to_csv(
+                os.path.join(DATA_FOLDER, f"paciente_{nombre}_{fecha}.csv"),
+                index=False
+            )
             st.success(f"Datos de {nombre} guardados correctamente.")
 
 # ----------------------------
@@ -127,7 +133,7 @@ with tabs[4]:
     
     with st.form("form_seguimiento"):
         st.subheader("Notas de relevancia clínica")
-        notas_clinicas = st.text_area("")  # Solo título arriba, texto libre aquí
+        notas_clinicas = st.text_area("")
         
         st.subheader("Ideas cualitativas sobre el proceso vincular")
         ideas_vinculares = st.text_area(
@@ -161,6 +167,63 @@ with tabs[5]:
         submitted_final = st.form_submit_button("Guardar evaluación")
         if submitted_final:
             st.success("Evaluación completa guardada correctamente!")
+
+# ----------------------------
+# 6️⃣ Cuestionario de validación + WhatsApp
+# ----------------------------
+with tabs[6]:
+    st.header("✅ Cuestionario de validación de formulario digital")
+    with st.form("form_feedback"):
+        usabilidad = st.radio("¿Le resulta fácil de usar este formulario digital?", ["Sí", "Parcialmente", "No"])
+        flujo = st.radio("¿Se entiende claramente el flujo de ingreso de información?", ["Sí", "Parcialmente", "No"])
+        dificultades = st.text_area("¿Qué dificultades encontró al completar los campos? (respuesta abierta)")
+        utilidad = st.radio("¿Este formulario digital le facilitaría su trabajo comparado con el método actual?", ["Mucho", "Algo", "Nada"])
+        campos_utiles = st.text_area("¿Qué campos considera más útiles para su labor diaria?")
+        mejoras = st.text_area("¿Qué agregarían o modificarían en las secciones existentes?")
+        recomendar = st.slider("En una escala del 1 al 5, ¿recomendaría este formulario digital a colegas?", 1, 5)
+        otros = st.text_area("Otros comentarios o sugerencias")
+        
+        submitted_feedback = st.form_submit_button("Enviar feedback")
+        
+        if submitted_feedback:
+            # Guardar feedback completo en CSV
+            feedback_data = {
+                "usabilidad": usabilidad,
+                "flujo": flujo,
+                "dificultades": dificultades,
+                "utilidad": utilidad,
+                "campos_utiles": campos_utiles,
+                "mejoras": mejoras,
+                "recomendar": recomendar,
+                "otros": otros
+            }
+            df_feedback = pd.DataFrame([feedback_data])
+            df_feedback.to_csv(
+                os.path.join(DATA_FOLDER, "feedback.csv"),
+                mode="a",
+                index=False,
+                header=not os.path.exists(os.path.join(DATA_FOLDER, "feedback.csv"))
+            )
+            st.success("¡Gracias por enviar tu feedback!")
+            
+            # Generar resumen compacto para WhatsApp
+            resumen_compacto = (
+                f"📝 Feedback Formulario:\n"
+                f"Usabilidad: {usabilidad}\n"
+                f"Flujo: {flujo}\n"
+                f"Dificultades: {dificultades}\n"
+                f"Utilidad: {utilidad}\n"
+                f"Campos útiles: {campos_utiles}\n"
+                f"Mejoras: {mejoras}\n"
+                f"Recomendar: {recomendar}\n"
+                f"Otros: {otros}"
+            )
+            
+            mensaje_codificado = urllib.parse.quote(resumen_compacto)
+            numero = "59898776605"  # tu número real
+            link_whatsapp = f"https://wa.me/{numero}?text={mensaje_codificado}"
+            
+            st.markdown(f"[💬 Enviar feedback a mi WhatsApp]({link_whatsapp})", unsafe_allow_html=True)
 
 
 
