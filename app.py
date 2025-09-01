@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+import urllib.parse
 
 # ----------------------------
 # Configuración de la página
@@ -24,6 +25,11 @@ DATA_FILE = os.path.join(DATA_FOLDER, "profesionales.csv")
 # Título principal
 # ----------------------------
 st.title("Formulario Psicomotriz - Prototipo Web")
+
+# ----------------------------
+# Número de WhatsApp de destino (ejemplo)
+# ----------------------------
+WHATSAPP_NUMBER = "59899999999"  # reemplazá con el número real
 
 # ----------------------------
 # Crear pestañas
@@ -89,7 +95,12 @@ with tab2:
             df.to_csv(DATA_FILE, index=False)
             
             st.success(f"Gracias {nombre}, tus datos fueron registrados correctamente.")
+            
+            # Generar link de WhatsApp con los datos
+            mensaje = f"Nombre: {nombre}%0AProfesión: {profesion}%0ACédula: {cedula}"
+            whatsapp_url = f"https://wa.me/{WHATSAPP_NUMBER}?text={mensaje}"
+            
+            st.markdown(f"[Enviar datos por WhatsApp]({whatsapp_url})", unsafe_allow_html=True)
         else:
             st.error("Por favor completá todos los campos antes de enviar.")
-
 
