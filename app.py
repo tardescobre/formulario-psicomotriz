@@ -6,7 +6,10 @@ from datetime import datetime
 # ----------------------------
 # Configuración de la página
 # ----------------------------
-st.set_page_config(page_title="Formulario Psicomotriz", layout="centered")
+st.set_page_config(
+    page_title="Formulario Psicomotriz",
+    layout="centered"
+)
 
 # ----------------------------
 # Carpetas y archivos
@@ -23,6 +26,15 @@ DATA_FILE_PROF = os.path.join(DATA_FOLDER, "profesionales.csv")
 st.title("Formulario Psicomotriz - Prototipo Web")
 
 # ----------------------------
+# Presentación del equipo
+# ----------------------------
+st.markdown("""
+**Equipo responsable del proyecto:**  
+- 👩‍⚕️ Licenciada en Psicomotricidad  
+- 📊 Licenciado en Estadística
+""")
+
+# ----------------------------
 # Sección Resumen
 # ----------------------------
 st.header("Resumen")
@@ -30,7 +42,7 @@ st.write("""
 Estimado profesional:
 
 Este enlace que recibiste por WhatsApp te lleva a un **prototipo de formulario web** 
-diseñado para digitalizar los procesos actuales de evaluación en nuestra clínica psicomotriz.
+diseñado para **digitalizar los procesos actuales de evaluación y seguimiento de procesos en la clínica psicomotriz**.
 
 **Objetivo:**
 - Validar la digitalización de formularios.
@@ -38,11 +50,15 @@ diseñado para digitalizar los procesos actuales de evaluación en nuestra clín
 - Facilitar seguimiento de evolución de pacientes.
 
 **Por qué recibiste este link:**
-- Queremos recopilar información segura y rápida de los profesionales que participan.
-- Tu colaboración permitirá validar el prototipo para ANII.
+- Queremos recopilar información segura de los profesionales que participan.
+- Tu colaboración permitirá validar el prototipo para realizar una investigación.
 """)
 
+# ----------------------------
 # Datos del profesional (solo para registro interno)
+# ----------------------------
+st.subheader("Registro de datos del profesional")
+
 nombre = st.text_input("Nombre completo")
 profesion = st.text_input("Profesión")
 cedula = st.text_input("Cédula")
@@ -65,6 +81,4 @@ if st.button("Registrar datos profesionales"):
         st.success(f"Gracias {nombre}, tus datos fueron registrados correctamente.")
     else:
         st.error("Por favor completá todos los campos del profesional.")
-
-
 
