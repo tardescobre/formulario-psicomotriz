@@ -1,6 +1,87 @@
+
 import streamlit as st
 import pandas as pd
 import os
+from datetime import datetime
+
+# ----------------------------
+# Configuración de la página
+# ----------------------------
+st.set_page_config(
+    page_title="Formulario Psicomotriz",
+    layout="centered"
+)
+
+# ----------------------------
+# Carpetas y archivos
+# ----------------------------
+DATA_FOLDER = "datos_guardados"
+if not os.path.exists(DATA_FOLDER):
+    os.makedirs(DATA_FOLDER)
+
+DATA_FILE_PROF = os.path.join(DATA_FOLDER, "profesionales.csv")
+
+# ----------------------------
+# Título principal
+# ----------------------------
+st.title("Formulario Psicomotriz - Prototipo Web")
+
+# ----------------------------
+# Presentación del equipo
+# ----------------------------
+st.markdown("""
+**Equipo responsable del proyecto:**  
+- 👩‍⚕️ Licenciada en Psicomotricidad  
+- 📊 Licenciado en Estadística
+""")
+
+# ----------------------------
+# Sección Resumen
+# ----------------------------
+st.header("Resumen")
+st.write("""
+Estimado profesional:
+
+Este enlace que recibiste por WhatsApp te lleva a un **prototipo de formulario web** 
+diseñado para **digitalizar los procesos actuales de evaluación y seguimiento de procesos en la clínica psicomotriz**.
+
+**Objetivo:**
+- Validar la digitalización de formularios.
+- Mejorar eficiencia y precisión.
+- Facilitar seguimiento de evolución de pacientes.
+
+**Por qué recibiste este link:**
+- Queremos recopilar información segura de los profesionales que participan.
+- Tu colaboración permitirá validar el prototipo para realizar una investigación.
+""")
+
+# ----------------------------
+# Datos del profesional (solo para registro interno)
+# ----------------------------
+st.subheader("Registro de datos del profesional")
+
+nombre_prof = st.text_input("Nombre completo", key="prof_nombre")
+profesion_prof = st.text_input("Profesión", key="prof_profesion")
+cedula_prof = st.text_input("Cédula", key="prof_cedula")
+
+if st.button("Registrar datos profesionales"):
+    if nombre_prof and profesion_prof and cedula_prof:
+        # Guardar datos profesionales en CSV
+        nueva_fila = pd.DataFrame({
+            "Nombre": [nombre_prof],
+            "Profesión": [profesion_prof],
+            "Cédula": [cedula_prof],
+            "Fecha registro": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+        })
+        if os.path.exists(DATA_FILE_PROF):
+            df = pd.read_csv(DATA_FILE_PROF)
+            df = pd.concat([df, nueva_fila], ignore_index=True)
+        else:
+            df = nueva_fila
+        df.to_csv(DATA_FILE_PROF, index=False)
+        st.success(f"Gracias {nombre_prof}, tus datos fueron registrados correctamente.")
+    else:
+        st.error("Por favor completá todos los campos del profesional.")
 
 # Definir DATA_FOLDER si no existe
 if 'DATA_FOLDER' not in globals():
@@ -116,6 +197,7 @@ with tabs[4]:
         submitted_final = st.form_submit_button("Guardar evaluación")
 
 with tabs[5]:
+
     st.header("✅ Cuestionario de validación de formulario digital")
     with st.form("form_feedback"):
         usabilidad = st.radio("¿Le resulta fácil de usar este formulario digital?", ["Sí", "Parcialmente", "No"])
@@ -130,16 +212,10 @@ with tabs[5]:
         submitted_feedback = st.form_submit_button("Enviar feedback")
 
         if submitted_feedback:
-            # Advertencia para usuarios de WhatsApp Desktop
             st.warning("""
-**IMPORTANTE:** Si tienes WhatsApp Desktop instalado, el mensaje NO se prellenará automáticamente. 
-
-Para que el texto se complete solo, usa WhatsApp Web (web.whatsapp.com) o la app móvil. 
-
-Si no funciona, puedes copiar el resumen manualmente y pegarlo en tu chat de WhatsApp.
+**IMPORTANTE:** El botón de WhatsApp detecta si estás en PC o móvil. Si tienes WhatsApp Desktop instalado, el mensaje puede no prellenarse automáticamente. Usa WhatsApp Web o la app móvil para mejor experiencia.
 """)
 
-            # Resumen real del feedback
             resumen_compacto = (
                 f"Feedback Formulario\n"
                 f"Usabilidad: {usabilidad}\n"
@@ -152,7 +228,6 @@ Si no funciona, puedes copiar el resumen manualmente y pegarlo en tu chat de Wha
                 f"Otros: {otros}"
             )
 
-            # Mostrar el resumen y botón para copiar
             import streamlit.components.v1 as components
             st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
             st.code(resumen_compacto, language=None)
@@ -170,23 +245,24 @@ document.getElementById('copyBtn').onclick = function() {{
             import urllib.parse
             mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
             numero = "59898776605"
-            link_whatsapp = f"https://wa.me/{numero}?text={mensaje_codificado}"
-            st.markdown(
-                f"""
-                <a href="{link_whatsapp}" target="_blank" style="
-                    display: inline-block;
-                    padding: 1em 2em;
-                    font-size: 1.2em;
-                    color: white;
-                    background-color: #25D366;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-weight: bold;
-                    margin-top: 1em;
-                ">💬 Enviar feedback por WhatsApp</a>
-                """,
-                unsafe_allow_html=True
-            )
+
+            # JavaScript para detectar dispositivo y abrir el link correcto
+            js_code = f'''
+<button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
+<script>
+document.getElementById('wappBtn').onclick = function() {{
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    var url = '';
+    if (isMobile) {{
+        url = 'https://wa.me/?text={mensaje_codificado}';
+    }} else {{
+        url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
+    }}
+    window.open(url, '_blank');
+}}
+</script>
+'''
+            components.html(js_code, height=120)
 
 with tabs[6]:
     st.header("📋 Lista de pacientes registrados")
