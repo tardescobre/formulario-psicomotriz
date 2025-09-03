@@ -65,8 +65,8 @@ with tabs[0]:
     - Mejorar eficiencia y precisión.
     - Facilitar seguimiento de evolución de pacientes.
 
-    **Por qué recibiste este link:**
-    - Queremos recopilar información segura de los profesionales que participan.
+    **¿Por qué recibiste este link?**
+    - Queremos recopilar información de los profesionales que participan.
     - Tu colaboración permitirá validar el prototipo para realizar una investigación.
     """)
 
