@@ -132,11 +132,8 @@ with tabs[3]:
     st.header("Antecedentes")
     with st.form("form_antecedentes"):
         antecedentes = st.text_area("Ingrese los antecedentes del paciente")
-        derivado = st.radio("¿Fue derivado?", ["Sí", "No"])
-        if derivado == "Sí":
-            origen = st.text_input("Origen de la derivación")
-        else:
-            origen = ""
+        derivado_por = st.text_input("Derivado por:")
+        origen = st.text_input("Origen de la derivación")
         submitted_antec = st.form_submit_button("Guardar antecedentes")
         if submitted_antec:
             st.success("Antecedentes guardados correctamente!")
