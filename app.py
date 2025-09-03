@@ -56,7 +56,9 @@ with tabs[0]:
     Estimado profesional:
 
     Este enlace que recibiste por WhatsApp te lleva a un **prototipo de formulario web** 
-    diseñado para **digitalizar los procesos actuales de evaluación y seguimiento de procesos en la clínica psicomotriz**.
+    diseñado para **digitalizar los procesos de evaluación y seguimiento de los pacientes en la clínica psicomotriz**.
+             
+    Si tu profesión es otra y recibiste el link, es porque consideramos que tus aportes serán fundamentales para este proyecto y la posibilidad de ampliarlo hacia otras disciplinas en un futuro.
 
     **Objetivo:**
     - Validar la digitalización de formularios.
@@ -337,3 +339,4 @@ document.getElementById('wappBtn').onclick = function() {{
 </script>
 '''
             components.html(js_code, height=120)
+
