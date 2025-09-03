@@ -1,8 +1,10 @@
-
 import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+import csv
+import urllib.parse
+import streamlit.components.v1 as components
 
 # ----------------------------
 # Configuración de la página
@@ -20,123 +22,110 @@ if not os.path.exists(DATA_FOLDER):
     os.makedirs(DATA_FOLDER)
 
 DATA_FILE_PROF = os.path.join(DATA_FOLDER, "profesionales.csv")
+PACIENTES_FILE = os.path.join(DATA_FOLDER, "pacientes.csv")
 
 # ----------------------------
-# Título principal
+# Definición de pestañas
 # ----------------------------
-st.title("Formulario Psicomotriz - Prototipo Web")
-
-# ----------------------------
-# Presentación del equipo
-# ----------------------------
-st.markdown("""
-**Equipo responsable del proyecto:**  
-- 👩‍⚕️ Licenciada en Psicomotricidad  
-- 📊 Licenciado en Estadística
-""")
-
-
-# ----------------------------
-# Sección Resumen
-# ----------------------------
-st.header("Resumen")
-st.write("""
-Estimado profesional:
-
-Este enlace que recibiste por WhatsApp te lleva a un **prototipo de formulario web** 
-diseñado para **digitalizar los procesos actuales de evaluación y seguimiento de procesos en la clínica psicomotriz**.
-
-**Objetivo:**
-- Validar la digitalización de formularios.
-- Mejorar eficiencia y precisión.
-- Facilitar seguimiento de evolución de pacientes.
-
-**Por qué recibiste este link:**
-- Queremos recopilar información segura de los profesionales que participan.
-- Tu colaboración permitirá validar el prototipo para realizar una investigación.
-""")
+tabs = st.tabs([
+    "Introducción",
+    "Registro de datos del profesional",
+    "Datos del paciente",
+    "Antecedentes",
+    "Tests psicomotrices",
+    "Seguimiento del proceso",
+    "Guardar evaluación",
+    "Lista de pacientes",
+    "Cuestionario de validación"
+])
 
 # ----------------------------
-# Datos del profesional (solo para registro interno)
+# Pestaña 1: Introducción
 # ----------------------------
-st.subheader("Registro de datos del profesional")
-
-nombre_prof = st.text_input("Nombre completo", key="prof_nombre")
-profesion_prof = st.text_input("Profesión", key="prof_profesion")
-cedula_prof = st.text_input("Cédula", key="prof_cedula")
-
-if st.button("Registrar datos profesionales"):
-    if nombre_prof and profesion_prof and cedula_prof:
-        # Guardar datos profesionales en CSV
-        nueva_fila = pd.DataFrame({
-            "Nombre": [nombre_prof],
-            "Profesión": [profesion_prof],
-            "Cédula": [cedula_prof],
-            "Fecha registro": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-        })
-        if os.path.exists(DATA_FILE_PROF):
-            df = pd.read_csv(DATA_FILE_PROF)
-            df = pd.concat([df, nueva_fila], ignore_index=True)
-        else:
-            df = nueva_fila
-        df.to_csv(DATA_FILE_PROF, index=False)
-        st.success(f"Gracias {nombre_prof}, tus datos fueron registrados correctamente.")
-    else:
-        st.error("Por favor completá todos los campos del profesional.")
-
-# Definir DATA_FOLDER si no existe
-if 'DATA_FOLDER' not in globals():
-    DATA_FOLDER = '.'
-
-# Definir tabs si no existe
-if 'tabs' not in globals():
-    tabs = st.tabs([
-        "Datos del paciente",
-        "Antecedentes",
-        "Tests psicomotrices",
-        "Seguimiento del proceso",
-        "Guardar evaluación",
-        "Cuestionario de validación",
-        "Lista de pacientes"
-    ])
 with tabs[0]:
-    st.header("Datos del paciente")
-    with st.form("form_paciente"):
-        nombre = st.text_input("Nombre completo")
-        documento = st.text_input("Documento")
-        edad = st.number_input("Edad", min_value=0, max_value=120, step=1)
-        sexo = st.selectbox("Sexo", ["", "Masculino", "Femenino", "Otro"])
-        derivado = st.radio("¿Fue derivado?", ["Sí", "No"])
-        fuente_derivacion = st.text_input("Fuente de derivación (ej: escuela, pediatra)")
-        motivo_consulta = st.text_area("Motivo de consulta")
-        submitted_paciente = st.form_submit_button("Guardar paciente")
-        if submitted_paciente:
-            import datetime
-            import csv
-            datos = {
-                "timestamp": datetime.datetime.now().isoformat(),
-                "nombre": nombre,
-                "documento": documento,
-                "edad": edad,
-                "sexo": sexo,
-                "derivado": derivado,
-                "fuente_derivacion": fuente_derivacion,
-                "motivo_consulta": motivo_consulta
-            }
-            archivo = "registros.csv"
-            existe = os.path.exists(archivo)
-            with open(archivo, "a", newline='', encoding='utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=datos.keys())
-                if not existe:
-                    writer.writeheader()
-                writer.writerow(datos)
-            st.success("Paciente guardado correctamente.")
+    st.title("Formulario Psicomotriz - Prototipo Web")
+    
+    # Presentación del equipo
+    st.markdown("""
+    **Equipo responsable del proyecto:**  
+    - 👩‍⚕️ Licenciada en Psicomotricidad  
+    - 📊 Licenciado en Estadística
+    """)
+    
+    st.header("Resumen")
+    st.write("""
+    Estimado profesional:
 
+    Este enlace que recibiste por WhatsApp te lleva a un **prototipo de formulario web** 
+    diseñado para **digitalizar los procesos actuales de evaluación y seguimiento de procesos en la clínica psicomotriz**.
 
+    **Objetivo:**
+    - Validar la digitalización de formularios.
+    - Mejorar eficiencia y precisión.
+    - Facilitar seguimiento de evolución de pacientes.
 
+    **Por qué recibiste este link:**
+    - Queremos recopilar información segura de los profesionales que participan.
+    - Tu colaboración permitirá validar el prototipo para realizar una investigación.
+    """)
 
-
+# ----------------------------
+# Pestaña 2: Registro de datos del profesional
+# ----------------------------
 with tabs[1]:
+    st.header("Registro de datos del profesional")
+    
+    nombre_prof = st.text_input("Nombre completo", key="prof_nombre")
+    profesion_prof = st.text_input("Profesión", key="prof_profesion")
+    cedula_prof = st.text_input("Cédula", key="prof_cedula")
+
+    if st.button("Registrar datos profesionales"):
+        if nombre_prof and profesion_prof and cedula_prof:
+            # Guardar datos profesionales en CSV
+            nueva_fila = pd.DataFrame({
+                "Nombre": [nombre_prof],
+                "Profesión": [profesion_prof],
+                "Cédula": [cedula_prof],
+                "Fecha registro": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            })
+            if os.path.exists(DATA_FILE_PROF):
+                df = pd.read_csv(DATA_FILE_PROF)
+                df = pd.concat([df, nueva_fila], ignore_index=True)
+            else:
+                df = nueva_fila
+            df.to_csv(DATA_FILE_PROF, index=False)
+            st.success(f"Gracias {nombre_prof}, tus datos fueron registrados correctamente.")
+        else:
+            st.error("Por favor completá todos los campos del profesional.")
+
+# ----------------------------
+# Pestaña 3: Datos del paciente (TABLA EDITABLE)
+# ----------------------------
+with tabs[2]:
+    st.header("Datos del paciente")
+    
+    # Inicializar dataframe si no existe
+    if os.path.exists(PACIENTES_FILE):
+        df_pacientes = pd.read_csv(PACIENTES_FILE)
+    else:
+        df_pacientes = pd.DataFrame(columns=["Nombre", "Fecha", "Hora"])
+    
+    # Tabla editable de pacientes
+    st.subheader("Pacientes registrados (editable)")
+    edited_df = st.data_editor(
+        df_pacientes,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="pacientes_editor"
+    )
+    if st.button("Guardar cambios en la tabla"):
+        edited_df.to_csv(PACIENTES_FILE, index=False)
+        st.success("Cambios guardados correctamente.")
+
+# ----------------------------
+# Pestaña 4: Antecedentes
+# ----------------------------
+with tabs[3]:
     st.header("Antecedentes")
     with st.form("form_antecedentes"):
         antecedentes = st.text_area("Ingrese los antecedentes del paciente")
@@ -153,7 +142,10 @@ with tabs[1]:
             if derivado == "Sí":
                 st.write("Origen de la derivación:", origen)
 
-with tabs[2]:
+# ----------------------------
+# Pestaña 5: Tests psicomotrices
+# ----------------------------
+with tabs[4]:
     st.header("Tests psicomotrices")
     tests_disponibles = [
         "DFH Koppitz",
@@ -176,7 +168,10 @@ with tabs[2]:
             st.write("Tests seleccionados:", seleccionados)
             st.write("Resultados detallados:", resultados)
 
-with tabs[3]:
+# ----------------------------
+# Pestaña 6: Seguimiento del proceso
+# ----------------------------
+with tabs[5]:
     st.header("Seguimiento del proceso")
     with st.form("form_seguimiento"):
         st.subheader("Notas de relevancia clínica")
@@ -191,14 +186,33 @@ with tabs[3]:
         if submitted_seguimiento:
             st.success("Seguimiento guardado correctamente!")
 
-with tabs[4]:
+# ----------------------------
+# Pestaña 7: Guardar evaluación
+# ----------------------------
+with tabs[6]:
     st.header("Guardar evaluación completa")
     with st.form("form_guardar"):
         comentario_final = st.text_area("Comentarios finales antes de guardar evaluación")
         submitted_final = st.form_submit_button("Guardar evaluación")
 
-with tabs[5]:
+# ----------------------------
+# Pestaña 8: Lista de pacientes
+# ----------------------------
+with tabs[7]:
+    st.header("📋 Lista de pacientes registrados")
+    try:
+        if os.path.exists(PACIENTES_FILE):
+            df_pacientes = pd.read_csv(PACIENTES_FILE)
+            st.dataframe(df_pacientes)
+        else:
+            st.info("No hay pacientes registrados aún.")
+    except Exception as e:
+        st.info("No hay registros de pacientes aún o el archivo no existe.")
 
+# ----------------------------
+# Pestaña 9: Cuestionario de validación
+# ----------------------------
+with tabs[8]:
     st.header("✅ Cuestionario de validación de formulario digital")
     with st.form("form_feedback"):
         usabilidad = st.radio("¿Le resulta fácil de usar este formulario digital?", ["Sí", "Parcialmente", "No"])
@@ -214,8 +228,8 @@ with tabs[5]:
 
         if submitted_feedback:
             st.warning("""
-**IMPORTANTE:** El botón de WhatsApp detecta si estás en PC o móvil. Si tienes WhatsApp Desktop instalado, el mensaje puede no prellenarse automáticamente. Usa WhatsApp Web o la app móvil para mejor experiencia.
-""")
+    **IMPORTANTE:** El botón de WhatsApp detecta si estás en PC o móvil. Si tienes WhatsApp Desktop instalado, el mensaje puede no prellenarse automáticamente. Usa WhatsApp Web o la app móvil para mejor experiencia.
+    """)
 
             resumen_compacto = (
                 f"Feedback Formulario\n"
@@ -229,103 +243,37 @@ with tabs[5]:
                 f"Otros: {otros}"
             )
 
-            import streamlit.components.v1 as components
             st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
             st.code(resumen_compacto, language=None)
+            
             copy_code = f'''
-<button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
-<script>
-document.getElementById('copyBtn').onclick = function() {{
-    navigator.clipboard.writeText(`{resumen_compacto}`);
-    alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
-}}
-</script>
-'''
+    <button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
+    <script>
+    document.getElementById('copyBtn').onclick = function() {{
+        navigator.clipboard.writeText(`{resumen_compacto}`);
+        alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
+    }}
+    </script>
+    '''
             components.html(copy_code, height=80)
 
-            import urllib.parse
             mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
             numero = "59898776605"
 
             # JavaScript para detectar dispositivo y abrir el link correcto
             js_code = f'''
-<button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
-<script>
-document.getElementById('wappBtn').onclick = function() {{
-    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    var url = '';
-    if (isMobile) {{
-        url = 'https://wa.me/?text={mensaje_codificado}';
-    }} else {{
-        url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
+    <button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
+    <script>
+    document.getElementById('wappBtn').onclick = function() {{
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        var url = '';
+        if (isMobile) {{
+            url = 'https://wa.me/?text={mensaje_codificado}';
+        }} else {{
+            url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
+        }}
+        window.open(url, '_blank');
     }}
-    window.open(url, '_blank');
-}}
-</script>
-'''
+    </script>
+    '''
             components.html(js_code, height=120)
-
-with tabs[6]:
-    st.header("📋 Lista de pacientes registrados")
-    try:
-        df_pacientes = pd.read_csv("registros.csv")
-        st.dataframe(df_pacientes)
-    except Exception as e:
-        st.info("No hay registros de pacientes aún o el archivo no existe.")
-
-
-
-
-# ----------------------------
-# Sección Resumen
-# ----------------------------
-st.header("Resumen")
-st.write("""
-Estimado profesional:
-
-Este enlace que recibiste por WhatsApp te lleva a un **prototipo de formulario web** 
-diseñado para **digitalizar los procesos actuales de evaluación y seguimiento de procesos en la clínica psicomotriz**.
-
-**Objetivo:**
-- Validar la digitalización de formularios.
-- Mejorar eficiencia y precisión.
-- Facilitar seguimiento de evolución de pacientes.
-
-**Por qué recibiste este link:**
-- Queremos recopilar información segura de los profesionales que participan.
-- Tu colaboración permitirá validar el prototipo para realizar una investigación.
-""")
-
-# ----------------------------
-# Datos del profesional (solo para registro interno)
-# ----------------------------
-st.subheader("Registro de datos del profesional")
-
-nombre = st.text_input("Nombre completo")
-profesion = st.text_input("Profesión")
-cedula = st.text_input("Cédula")
-
-if st.button("Registrar datos profesionales"):
-    if nombre and profesion and cedula:
-        # Guardar datos profesionales en CSV
-        nueva_fila = pd.DataFrame({
-            "Nombre": [nombre],
-            "Profesión": [profesion],
-            "Cédula": [cedula],
-            "Fecha registro": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-        })
-        if os.path.exists(DATA_FILE_PROF):
-            df = pd.read_csv(DATA_FILE_PROF)
-            df = pd.concat([df, nueva_fila], ignore_index=True)
-        else:
-            df = nueva_fila
-        df.to_csv(DATA_FILE_PROF, index=False)
-        st.success(f"Gracias {nombre}, tus datos fueron registrados correctamente.")
-    else:
-        st.error("Por favor completá todos los campos del profesional.")
-
-
-
-
-
-                            
