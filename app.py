@@ -98,6 +98,8 @@ with tabs[1]:
             st.success(f"Gracias {nombre_prof}, tus datos fueron registrados correctamente.")
         else:
             st.error("Por favor completá todos los campos del profesional.")
+            # Mensaje al pie de la página, debajo de todo
+st.markdown("<div style='margin-top:50px; color:gray;'>En la pestaña siguiente comienza el prototipo de formulario para cada paciente.</div>", unsafe_allow_html=True)
 
 # ----------------------------
 # Pestaña 3: Datos del paciente
