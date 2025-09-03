@@ -75,14 +75,12 @@ with tabs[0]:
 # ----------------------------
 with tabs[1]:
     st.header("Registro de datos del profesional")
-    
     nombre_prof = st.text_input("Nombre completo", key="prof_nombre")
     profesion_prof = st.text_input("Profesión", key="prof_profesion")
     cedula_prof = st.text_input("Cédula", key="prof_cedula")
 
     if st.button("Registrar datos profesionales"):
         if nombre_prof and profesion_prof and cedula_prof:
-            # Guardar datos profesionales en CSV
             nueva_fila = pd.DataFrame({
                 "Nombre": [nombre_prof],
                 "Profesión": [profesion_prof],
@@ -98,22 +96,29 @@ with tabs[1]:
             st.success(f"Gracias {nombre_prof}, tus datos fueron registrados correctamente.")
         else:
             st.error("Por favor completá todos los campos del profesional.")
-            # Mensaje al pie de la página, debajo de todo
-st.markdown("<div style='margin-top:50px; color:gray;'>En la pestaña siguiente comienza el prototipo de formulario para cada paciente.</div>", unsafe_allow_html=True)
 
+    # Mensaje al pie de página solo en esta pestaña
+    st.markdown(
+        "<div style='margin-top:50px; color:gray;'>En la pestaña siguiente comienza el prototipo de formulario para cada paciente.</div>",
+        unsafe_allow_html=True
+    )
+    
 # ----------------------------
 # Pestaña 3: Datos del paciente
 # ----------------------------
 with tabs[2]:
     st.header("Datos del paciente")
     
-    # Inicializar dataframe si no existe
+    # Inicializar dataframe
     if os.path.exists(PACIENTES_FILE):
         df_pacientes = pd.read_csv(PACIENTES_FILE)
+        if "Escolaridad" not in df_pacientes.columns:
+            df_pacientes.insert(1, "Escolaridad", "")
+        columnas_ordenadas = ["Nombre", "Escolaridad"] + [col for col in df_pacientes.columns if col not in ["Nombre", "Escolaridad"]]
+        df_pacientes = df_pacientes[columnas_ordenadas]
     else:
-        df_pacientes = pd.DataFrame(columns=["Nombre", "Fecha", "Hora"])
-    
-    # Tabla editable de pacientes
+        df_pacientes = pd.DataFrame(columns=["Nombre", "Escolaridad", "Fecha", "Hora"])
+
     st.subheader("Pacientes registrados (editable)")
     edited_df = st.data_editor(
         df_pacientes,
@@ -121,6 +126,7 @@ with tabs[2]:
         use_container_width=True,
         key="pacientes_editor"
     )
+    
     if st.button("Guardar cambios en la tabla"):
         edited_df.to_csv(PACIENTES_FILE, index=False)
         st.success("Cambios guardados correctamente.")
@@ -197,10 +203,17 @@ with tabs[7]:
     try:
         if os.path.exists(PACIENTES_FILE):
             df_pacientes = pd.read_csv(PACIENTES_FILE)
+            
+            # Asegurar que la columna Escolaridad exista y reordenar
+            if "Escolaridad" not in df_pacientes.columns:
+                df_pacientes.insert(1, "Escolaridad", "")
+            columnas_ordenadas = ["Nombre", "Escolaridad"] + [col for col in df_pacientes.columns if col not in ["Nombre", "Escolaridad"]]
+            df_pacientes = df_pacientes[columnas_ordenadas]
+            
             st.dataframe(df_pacientes)
         else:
             st.info("No hay pacientes registrados aún.")
-    except Exception as e:
+    except Exception:
         st.info("No hay registros de pacientes aún o el archivo no existe.")
 
 # ----------------------------
