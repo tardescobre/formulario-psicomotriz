@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-import csv
 import urllib.parse
 import streamlit.components.v1 as components
 
@@ -99,7 +98,7 @@ with tabs[1]:
             st.error("Por favor completá todos los campos del profesional.")
 
 # ----------------------------
-# Pestaña 3: Datos del paciente (TABLA EDITABLE)
+# Pestaña 3: Datos del paciente
 # ----------------------------
 with tabs[2]:
     st.header("Datos del paciente")
@@ -137,10 +136,6 @@ with tabs[3]:
         submitted_antec = st.form_submit_button("Guardar antecedentes")
         if submitted_antec:
             st.success("Antecedentes guardados correctamente!")
-            st.write("Antecedentes:", antecedentes)
-            st.write("Derivado:", derivado)
-            if derivado == "Sí":
-                st.write("Origen de la derivación:", origen)
 
 # ----------------------------
 # Pestaña 5: Tests psicomotrices
@@ -165,8 +160,6 @@ with tabs[4]:
         submitted_tests = st.form_submit_button("Guardar tests")
         if submitted_tests:
             st.success("Tests guardados correctamente!")
-            st.write("Tests seleccionados:", seleccionados)
-            st.write("Resultados detallados:", resultados)
 
 # ----------------------------
 # Pestaña 6: Seguimiento del proceso
@@ -213,67 +206,134 @@ with tabs[7]:
 # Pestaña 9: Cuestionario de validación
 # ----------------------------
 with tabs[8]:
-    st.header("✅ Cuestionario de validación de formulario digital")
+    st.header("✅ Cuestionario de validación de la app")
+
+    FEEDBACK_FILE = os.path.join(DATA_FOLDER, "feedback_app.csv")
+
     with st.form("form_feedback"):
-        usabilidad = st.radio("¿Le resulta fácil de usar este formulario digital?", ["Sí", "Parcialmente", "No"])
-        flujo = st.radio("¿Se entiende claramente el flujo de ingreso de información?", ["Sí", "Parcialmente", "No"])
-        dificultades = st.text_area("¿Qué dificultades encontró al completar los campos? (respuesta abierta)")
-        utilidad = st.radio("¿Este formulario digital le facilitaría su trabajo comparado con el método actual?", ["Mucho", "Algo", "Nada"])
-        campos_utiles = st.text_area("¿Qué campos considera más útiles para su labor diaria?")
+        # Mapas de respuestas cualitativas a numéricas
+        utilidad_map = {"Mucho": 5, "Algo": 3, "Nada": 1}
+        eficiencia_map = {"Sí": 5, "Parcialmente": 3, "No": 1}
+        satisfaccion_map = {"Sí": 5, "Parcialmente": 3, "No": 1}
+        diseño_map = {
+            "Muy bueno": 5,
+            "Bueno": 4,
+            "Regular": 3,
+            "Malo": 2,
+            "Muy malo": 1
+        }
+
+        # ------------------
+        # Preguntas
+        # ------------------
+        utilidad_resp = st.radio(
+            "¿Este formulario digital le facilitaría su trabajo comparado con el método actual?",
+            ["Mucho", "Algo", "Nada"]
+        )
+        eficiencia_resp = st.radio(
+            "¿Cree que este formulario ayuda a que sus procesos sean más eficientes?",
+            ["Sí", "Parcialmente", "No"]
+        )
+        intencion_uso = st.slider(
+            "En una escala del 0 al 10, ¿qué probabilidad tiene de usar esta app regularmente?",
+            0, 10, 7
+        )
+        satisfaccion_claridad = st.radio(
+            "¿Considera que el formulario es claro y fácil de completar?",
+            ["Sí", "Parcialmente", "No"]
+        )
+        satisfaccion_diseño = st.radio(
+            "¿Cómo evalúa el diseño visual de la app?",
+            ["Muy bueno", "Bueno", "Regular", "Malo", "Muy malo"]
+        )
+
         mejoras = st.text_area("¿Qué agregarían o modificarían en las secciones existentes?")
-        recomendar = st.slider("En una escala del 1 al 5, ¿recomendaría este formulario digital a colegas?", 1, 5)
-        otros = st.text_area("Otros comentarios o sugerencias")
+        comentarios = st.text_area("Comentarios o sugerencias adicionales (respuesta libre)")
 
         submitted_feedback = st.form_submit_button("Enviar feedback")
 
         if submitted_feedback:
-            st.warning("""
-    **IMPORTANTE:** El botón de WhatsApp detecta si estás en PC o móvil. Si tienes WhatsApp Desktop instalado, el mensaje puede no prellenarse automáticamente. Usa WhatsApp Web o la app móvil para mejor experiencia.
-    """)
+            # ------------------
+            # Mapear respuestas a valores numéricos
+            # ------------------
+            utilidad_val = utilidad_map[utilidad_resp]
+            eficiencia_val = eficiencia_map[eficiencia_resp]
+            satisfaccion_claridad_val = satisfaccion_map[satisfaccion_claridad]
+            satisfaccion_diseño_val = diseño_map[satisfaccion_diseño]
 
+            # ------------------
+            # Guardar en CSV
+            # ------------------
+            nueva_fila = pd.DataFrame({
+                "utilidad": [utilidad_val],
+                "eficiencia": [eficiencia_val],
+                "intencion_uso": [intencion_uso],
+                "satisfaccion_claridad": [satisfaccion_claridad_val],
+                "satisfaccion_diseño": [satisfaccion_diseño_val],
+                "mejoras": [mejoras],
+                "comentarios": [comentarios],
+                "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            })
+
+            if os.path.exists(FEEDBACK_FILE):
+                df_feedback = pd.read_csv(FEEDBACK_FILE)
+                df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
+            else:
+                df_feedback = nueva_fila
+            df_feedback.to_csv(FEEDBACK_FILE, index=False)
+
+            st.success("¡Gracias! Tu feedback fue registrado correctamente.")
+
+            # ------------------
+            # Generar resumen para WhatsApp
+            # ------------------
             resumen_compacto = (
-                f"Feedback Formulario\n"
-                f"Usabilidad: {usabilidad}\n"
-                f"Flujo: {flujo}\n"
-                f"Dificultades: {dificultades}\n"
-                f"Utilidad: {utilidad}\n"
-                f"Campos utiles: {campos_utiles}\n"
+                f"Feedback App\n"
+                f"Utilidad: {utilidad_val}/5\n"
+                f"Eficiencia: {eficiencia_val}/5\n"
+                f"Intención de uso: {intencion_uso}/10\n"
+                f"Satisfacción claridad: {satisfaccion_claridad_val}/5\n"
+                f"Satisfacción diseño: {satisfaccion_diseño_val}/5\n"
                 f"Mejoras: {mejoras}\n"
-                f"Recomendar: {recomendar}\n"
-                f"Otros: {otros}"
+                f"Comentarios: {comentarios}"
             )
 
             st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
             st.code(resumen_compacto, language=None)
-            
+
+            # ------------------
+            # Botón copiar al portapapeles
+            # ------------------
             copy_code = f'''
-    <button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
-    <script>
-    document.getElementById('copyBtn').onclick = function() {{
-        navigator.clipboard.writeText(`{resumen_compacto}`);
-        alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
-    }}
-    </script>
-    '''
+<button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
+<script>
+document.getElementById('copyBtn').onclick = function() {{
+    navigator.clipboard.writeText(`{resumen_compacto}`);
+    alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
+}}
+</script>
+'''
             components.html(copy_code, height=80)
 
+            # ------------------
+            # Botón enviar WhatsApp
+            # ------------------
             mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
             numero = "59898776605"
 
-            # JavaScript para detectar dispositivo y abrir el link correcto
             js_code = f'''
-    <button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
-    <script>
-    document.getElementById('wappBtn').onclick = function() {{
-        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        var url = '';
-        if (isMobile) {{
-            url = 'https://wa.me/?text={mensaje_codificado}';
-        }} else {{
-            url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
-        }}
-        window.open(url, '_blank');
+<button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
+<script>
+document.getElementById('wappBtn').onclick = function() {{
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    var url = '';
+    if (isMobile) {{
+        url = 'https://wa.me/?text={mensaje_codificado}';
+    }} else {{
+        url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
     }}
-    </script>
-    '''
+    window.open(url, '_blank');
+}}
+</script>
+'''
             components.html(js_code, height=120)
