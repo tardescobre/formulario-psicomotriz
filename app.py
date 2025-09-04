@@ -45,31 +45,33 @@ tabs = st.tabs([
 # Pestaña 1: Introducción
 # ----------------------------
 with tabs[0]:
-    st.title("Formulario Psicomotriz - Prototipo Web")
+    # Título principal
+    st.markdown("<h1 style='text-align: center;'>Formulario Psicomotriz - Prototipo Web</h1>", unsafe_allow_html=True)
+
+    # Texto introductorio
     st.markdown("""
-**Equipo responsable del proyecto:**  
-- 👩‍⚕️ Licenciada en Psicomotricidad  
-- 📊 Licenciado en Estadística
-""")
-    st.header("Resumen")
-    st.write("""
-Estimado profesional:
+    ### Resumen
 
-Este enlace que recibiste por WhatsApp te lleva a un prototipo de formulario web diseñado para digitalizar los procesos de evaluación y seguimiento de los pacientes en la clínica psicomotriz.
+    Estimado/a profesional:
 
-Si tu profesión es otra y recibiste el link es porque consideramos que tus aportes serán fundamentales para este proyecto y la posibilidad de ampliarlo hacia otras disciplinas en un futuro.
+    El enlace que recibiste por WhatsApp te dirige a un prototipo de formulario web diseñado para digitalizar los procesos de evaluación y seguimiento en la clínica psicomotriz.
 
-Objetivo:
+    **Objetivos principales:**
+    - Validar la digitalización de formularios.
+    - Mejorar la eficiencia y precisión.
+    - Facilitar el seguimiento de la evolución de pacientes.
 
-- Validar la digitalización de formularios.
-- Mejorar eficiencia y precisión.
-- Facilitar seguimiento de evolución de pacientes.
+    **¿Por qué recibiste este link?**
+                
+    Queremos recopilar información de los profesionales que participan.  
+    Tu colaboración permitirá validar el prototipo para realizar una investigación.  
 
-¿Por qué recibiste este link?
+    ---
 
-- Queremos recopilar información de los profesionales que participan.
-- Tu colaboración permitirá validar el prototipo para realizar una investigación.
-""")
+    ⚠️ **Atención:** al finalizar el Cuestionario de validación en la última pestaña, les pedimos por favor que luego de llenar todos los campos den click en **Enviar feedback**, luego den click en **Copiar feedback** y finalmente den click en **Enviar feedback por WhatsApp**.
+    """)
+
+
 
 # ----------------------------
 # Pestaña 2: Registro de datos del profesional
@@ -99,7 +101,7 @@ with tabs[1]:
         else:
             st.error("Por favor completá todos los campos del profesional.")
 
-    st.markdown("En la pestaña siguiente comienza el prototipo de formulario para cada paciente.", unsafe_allow_html=True)
+    st.markdown("En la pestaña siguiente comienza el prototipo de formulario web para cada paciente.", unsafe_allow_html=True)
 
 # ----------------------------
 # Pestaña 3: Datos del paciente
