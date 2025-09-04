@@ -183,7 +183,12 @@ with tabs[4]:
 
         submitted_entrevista = st.form_submit_button("Guardar entrevista")
         if submitted_entrevista:
-            st.success("Entrevista inicial guardada correctamente!")
+            campos_obligatorios = [peso, talla, apgar, amamantamiento, control_cefalico, gateo, marcha, esfinteres, lenguaje, praxias, sueno, colecho, cohabitacion, alimentacion, primera_escolarizacion, lecto_escritura, amigos, actividades, tiempo_pantalla, acepta_limites, estrategias_padres, antecedentes_familiares]
+            campos_vacios = any([str(c).strip() == '' for c in campos_obligatorios])
+            if campos_vacios:
+                st.error("Por favor completá todos los campos obligatorios antes de guardar la entrevista inicial.")
+            else:
+                st.success("Entrevista inicial guardada correctamente!")
 
 # ----------------------------
 # Pestaña 6: Exploración
@@ -267,6 +272,10 @@ with tabs[9]:
 # ----------------------------
 with tabs[10]:
     st.header("✅ Cuestionario de validación de la app")
+    
+    # Primero pedir el nombre del profesional (obligatorio)
+    nombre_profesional = st.text_input("Nombre y apellido del profesional*", key="feedback_nombre")
+    
     with st.form("form_feedback"):
         utilidad_map = {"Mucho": 5, "Algo": 3, "Nada": 1}
         eficiencia_map = {"Sí": 5, "Parcialmente": 3, "No": 1}
@@ -301,46 +310,66 @@ with tabs[10]:
             "Comentarios o sugerencias adicionales (respuesta libre)",
             key="feedback_comentarios"
         )
+        
         submitted_feedback = st.form_submit_button("Enviar feedback")
-        if submitted_feedback:
-            utilidad_val = utilidad_map[utilidad_resp]
-            eficiencia_val = eficiencia_map[eficiencia_resp]
-            satisfaccion_claridad_val = satisfaccion_map[satisfaccion_claridad]
-            satisfaccion_diseño_val = diseño_map[satisfaccion_diseño]
-
-            nueva_fila = pd.DataFrame({
-                "utilidad": [utilidad_val],
-                "eficiencia": [eficiencia_val],
-                "intencion_uso": [intencion_uso],
-                "satisfaccion_claridad": [satisfaccion_claridad_val],
-                "satisfaccion_diseño": [satisfaccion_diseño_val],
-                "modificar_secciones": [modificar_secciones],
-                "comentarios": [comentarios],
-                "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-            })
-
-            if os.path.exists(FEEDBACK_FILE):
-                df_feedback = pd.read_csv(FEEDBACK_FILE)
-                df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
+        
+    # Manejo de la respuesta del formulario
+    if submitted_feedback:
+        # Validación de campos obligatorios
+        if not nombre_profesional.strip():
+            st.error("Por favor ingrese su nombre y apellido (campo obligatorio).")
+        else:
+            # Validar otros campos obligatorios
+            campos_obligatorios = [utilidad_resp, eficiencia_resp, intencion_uso, satisfaccion_claridad, satisfaccion_diseño, modificar_secciones, comentarios]
+            campos_vacios = any([str(c).strip() == '' for c in campos_obligatorios])
+            
+            if campos_vacios:
+                st.error("Por favor completá todas las respuestas obligatorias antes de enviar.")
             else:
-                df_feedback = nueva_fila
-            df_feedback.to_csv(FEEDBACK_FILE, index=False)
-            st.success("¡Gracias! Tu feedback fue registrado correctamente!")
+                utilidad_val = utilidad_map[utilidad_resp]
+                eficiencia_val = eficiencia_map[eficiencia_resp]
+                satisfaccion_claridad_val = satisfaccion_map[satisfaccion_claridad]
+                satisfaccion_diseño_val = diseño_map[satisfaccion_diseño]
 
-            resumen_compacto = (
-                f"Feedback App\n"
-                f"Utilidad: {utilidad_val}/5\n"
-                f"Eficiencia: {eficiencia_val}/5\n"
-                f"Intención de uso: {intencion_uso}/10\n"
-                f"Satisfacción claridad: {satisfaccion_claridad_val}/5\n"
-                f"Satisfacción diseño: {satisfaccion_diseño_val}/5\n"
-                f"Modificar secciones: {modificar_secciones}\n"
-                f"Comentarios: {comentarios}"
-            )
-            st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
-            st.code(resumen_compacto, language=None)
+                nueva_fila = pd.DataFrame({
+                    "nombre_profesional": [nombre_profesional],
+                    "utilidad": [utilidad_val],
+                    "utilidad_opcion": [utilidad_resp],
+                    "eficiencia": [eficiencia_val],
+                    "eficiencia_opcion": [eficiencia_resp],
+                    "intencion_uso": [intencion_uso],
+                    "satisfaccion_claridad": [satisfaccion_claridad_val],
+                    "satisfaccion_claridad_opcion": [satisfaccion_claridad],
+                    "satisfaccion_diseño": [satisfaccion_diseño_val],
+                    "satisfaccion_diseño_opcion": [satisfaccion_diseño],
+                    "modificar_secciones": [modificar_secciones],
+                    "comentarios": [comentarios],
+                    "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+                })
 
-            copy_code = f'''
+                if os.path.exists(FEEDBACK_FILE):
+                    df_feedback = pd.read_csv(FEEDBACK_FILE)
+                    df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
+                else:
+                    df_feedback = nueva_fila
+                df_feedback.to_csv(FEEDBACK_FILE, index=False)
+                st.success("¡Gracias! Tu feedback fue registrado correctamente!")
+
+                resumen_compacto = (
+                    f"Feedback App\n"
+                    f"Nombre del profesional: {nombre_profesional}\n"
+                    f"Utilidad: {utilidad_resp} ({utilidad_val}/5)\n"
+                    f"Eficiencia: {eficiencia_resp} ({eficiencia_val}/5)\n"
+                    f"Intención de uso: {intencion_uso}/10\n"
+                    f"Satisfacción claridad: {satisfaccion_claridad} ({satisfaccion_claridad_val}/5)\n"
+                    f"Satisfacción diseño: {satisfaccion_diseño} ({satisfaccion_diseño_val}/5)\n"
+                    f"Modificar secciones: {modificar_secciones}\n"
+                    f"Comentarios: {comentarios}"
+                )
+                st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
+                st.code(resumen_compacto, language=None)
+
+                copy_code = f'''
 <button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
 <script>
 document.getElementById('copyBtn').onclick = function(){{
@@ -349,11 +378,11 @@ document.getElementById('copyBtn').onclick = function(){{
 }}
 </script>
 '''
-            components.html(copy_code, height=80)
+                components.html(copy_code, height=80)
 
-            mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
-            numero = "59898776605"
-            js_code = f'''
+                mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
+                numero = "59898776605"
+                js_code = f'''
 <button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
 <script>
 document.getElementById('wappBtn').onclick = function(){{
@@ -368,5 +397,4 @@ document.getElementById('wappBtn').onclick = function(){{
 }}
 </script>
 '''
-            components.html(js_code, height=120)
-
+                components.html(js_code, height=120)
