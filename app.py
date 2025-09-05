@@ -303,6 +303,7 @@ with tabs[10]:
 with tabs[11]:
     st.header("✅ Cuestionario de validación de la app")
     
+    # Primero pedir el nombre del profesional (obligatorio)
     nombre_profesional = st.text_input("Nombre y apellido del profesional*", key="feedback_nombre")
     
     with st.form("form_feedback"):
@@ -342,10 +343,13 @@ with tabs[11]:
         
         submitted_feedback = st.form_submit_button("Enviar feedback")
         
+    # Manejo de la respuesta del formulario
     if submitted_feedback:
+        # Validación de campos obligatorios
         if not nombre_profesional.strip():
             st.error("Por favor ingrese su nombre y apellido (campo obligatorio).")
         else:
+            # Validar otros campos obligatorios
             campos_obligatorios = [utilidad_resp, eficiencia_resp, intencion_uso, satisfaccion_claridad, satisfaccion_diseño, modificar_secciones, comentarios]
             campos_vacios = any([str(c).strip() == '' for c in campos_obligatorios])
             
@@ -381,5 +385,61 @@ with tabs[11]:
                 df_feedback.to_csv(FEEDBACK_FILE, index=False)
                 st.success("¡Gracias! Tu feedback fue registrado correctamente!")
 
-                resumen_comp
+                # Generar resumen compacto (texto que se copiará y enviará por WhatsApp)
+                resumen_compacto = (
+                    f"Feedback App\n"
+                    f"Nombre del profesional: {nombre_profesional}\n"
+                    f"Utilidad: {utilidad_resp} ({utilidad_val}/5)\n"
+                    f"Eficiencia: {eficiencia_resp} ({eficiencia_val}/5)\n"
+                    f"Intención de uso: {intencion_uso}/10\n"
+                    f"Satisfacción claridad: {satisfaccion_claridad} ({satisfaccion_claridad_val}/5)\n"
+                    f"Satisfacción diseño: {satisfaccion_diseño} ({satisfaccion_diseño_val}/5)\n"
+                    f"Modificar secciones: {modificar_secciones}\n"
+                    f"Comentarios: {comentarios}"
+                )
+                st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
+                st.code(resumen_compacto, language=None)
+
+                # Botón de copiar (JS)
+                copy_code = f'''
+<button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
+<script>
+document.getElementById('copyBtn').onclick = function(){{
+    navigator.clipboard.writeText(`{resumen_compacto}`);
+    alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
+}}
+</script>
+'''
+                components.html(copy_code, height=80)
+
+                # Botón JS que abre WhatsApp (móvil o web)
+                mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
+                numero = "59898776605"
+                js_code = f'''
+<button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
+<script>
+document.getElementById('wappBtn').onclick = function(){{
+    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    var url = '';
+    if (isMobile){{
+        url = 'https://wa.me/?text={mensaje_codificado}';
+    }} else {{
+        url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
+    }}
+    window.open(url, '_blank');
+}}
+</script>
+'''
+                components.html(js_code, height=120)
+
+                # --- AQUÍ agregamos y guardamos el texto en session_state para uso con el botón Python ---
+                st.session_state["feedback_text"] = resumen_compacto
+
+                # Código solicitado por vos: botón Python que usa st.session_state["feedback_text"]
+                feedback_text = st.session_state.get("feedback_text", "")
+                if st.button("📲 Enviar Feedback por WhatsApp"):
+                    numero = "59898776605"  # tu número fijo en formato internacional
+                    mensaje = urllib.parse.quote(feedback_text)  # codifica el texto
+                    url = f"https://wa.me/{numero}?text={mensaje}"
+                    st.markdown(f"[Abrir WhatsApp]({url})", unsafe_allow_html=True)
 
