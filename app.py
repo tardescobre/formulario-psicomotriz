@@ -33,9 +33,10 @@ tabs = st.tabs([
     "Datos del paciente",
     "Antecedentes",
     "Entrevista inicial",
-    "Exploración",
+    "Insumos",
     "Tests psicomotrices",
     "Seguimiento del proceso",
+    "Entrevista de devolución",
     "Guardar Evaluación Completa",
     "📋 Lista de pacientes registrados",
     "Cuestionario de validación"
@@ -45,10 +46,8 @@ tabs = st.tabs([
 # Pestaña 1: Introducción
 # ----------------------------
 with tabs[0]:
-    # Título principal
     st.markdown("<h1 style='text-align: center;'>Formulario Psicomotriz - Prototipo Web</h1>", unsafe_allow_html=True)
 
-    # Texto introductorio
     st.markdown("""
     ### Resumen
 
@@ -70,8 +69,6 @@ with tabs[0]:
 
     ⚠️ **Atención:** al finalizar el Cuestionario de validación en la última pestaña, les pedimos por favor que luego de llenar todos los campos den click en **Enviar feedback**, luego den click en **Copiar feedback** y finalmente den click en **Enviar feedback por WhatsApp**.
     """)
-
-
 
 # ----------------------------
 # Pestaña 2: Registro de datos del profesional
@@ -193,15 +190,15 @@ with tabs[4]:
                 st.success("Entrevista inicial guardada correctamente!")
 
 # ----------------------------
-# Pestaña 6: Exploración
+# Pestaña 6: Insumos
 # ----------------------------
 with tabs[5]:
-    st.header("Exploración")
-    with st.form("form_exploracion"):
-        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="exploracion_img")
-        submitted_exploracion = st.form_submit_button("Guardar exploración")
-        if submitted_exploracion:
-            st.success("Exploración guardada correctamente!")
+    st.header("Insumos")
+    with st.form("form_insumos"):
+        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="insumos_img")
+        submitted_insumos = st.form_submit_button("Guardar insumos")
+        if submitted_insumos:
+            st.success("Insumos guardada correctamente!")
 
 # ----------------------------
 # Pestaña 7: Tests psicomotrices
@@ -237,15 +234,46 @@ with tabs[7]:
         ideas_vinculares = st.text_area("Ideas cualitativas sobre el proceso vincular", key="seguimiento_ideas")
         motor = st.text_area("Motor", key="seguimiento_motor")
         afectivo = st.text_area("Afectivo", key="seguimiento_afectivo")
-        relacional = st.text_area("Relacional", key="seguimiento_relacional")
+        relacional = st.text_area("Cognitivo", key="seguimiento_cognitivo")
         submitted_seguimiento = st.form_submit_button("Guardar seguimiento")
         if submitted_seguimiento:
             st.success("Seguimiento guardado correctamente!")
 
 # ----------------------------
-# Pestaña 9: Guardar evaluación completa
+# Pestaña 9: Entrevista de devolución
 # ----------------------------
 with tabs[8]:
+    st.header("📝 Entrevista de Devolución")
+    with st.form("form_devolucion"):
+        fecha = st.date_input("Fecha", value=datetime.today(), key="devol_fecha")
+        participantes = st.text_input("Participantes presentes (familiares, docentes, terapeuta...)", key="devol_participantes")
+        duracion = st.text_input("Duración aproximada", key="devol_duracion")
+
+        st.subheader("Síntesis de evolución")
+        motor_dev = st.text_area("Área Motora", key="devol_motor")
+        afectivo_dev = st.text_area("Área Afectiva", key="devol_afectivo")
+        cognitivo_dev = st.text_area("Área Cognitiva", key="devol_cognitivo")
+
+        st.subheader("Retroalimentación de la familia/docente")
+        retro = st.text_area("Opiniones, preguntas u observaciones", key="devol_retro")
+
+        st.subheader("Plan de acción")
+        hogar = st.text_area("Recomendaciones para el hogar", key="devol_hogar")
+        aula = st.text_area("Orientaciones para el aula", key="devol_aula")
+        proximas = st.text_area("Sugerencias para próximas sesiones", key="devol_proximas")
+
+        st.subheader("Cierre")
+        acuerdo = st.text_area("Acuerdos con la familia", key="devol_acuerdo")
+        obs_finales = st.text_area("Observaciones finales", key="devol_obs")
+
+        submitted_devolucion = st.form_submit_button("Guardar Entrevista de Devolución")
+        if submitted_devolucion:
+            st.success("La entrevista de devolución ha sido registrada correctamente.")
+
+# ----------------------------
+# Pestaña 10: Guardar evaluación completa
+# ----------------------------
+with tabs[9]:
     st.header("Guardar Evaluación Completa")
     with st.form("form_guardar"):
         comentario_final = st.text_area("Comentarios finales antes de guardar evaluación", key="guardar_comentario")
@@ -254,9 +282,9 @@ with tabs[8]:
             st.success("Evaluación completa guardada!")
 
 # ----------------------------
-# Pestaña 10: Lista de pacientes registrados
+# Pestaña 11: Lista de pacientes registrados
 # ----------------------------
-with tabs[9]:
+with tabs[10]:
     st.header("📋 Lista de pacientes registrados")
     if os.path.exists(PACIENTES_FILE):
         df_pacientes = pd.read_csv(PACIENTES_FILE)
@@ -270,12 +298,11 @@ with tabs[9]:
         st.info("No hay pacientes registrados aún.")
 
 # ----------------------------
-# Pestaña 11: Cuestionario de validación
+# Pestaña 12: Cuestionario de validación
 # ----------------------------
-with tabs[10]:
+with tabs[11]:
     st.header("✅ Cuestionario de validación de la app")
     
-    # Primero pedir el nombre del profesional (obligatorio)
     nombre_profesional = st.text_input("Nombre y apellido del profesional*", key="feedback_nombre")
     
     with st.form("form_feedback"):
@@ -315,13 +342,10 @@ with tabs[10]:
         
         submitted_feedback = st.form_submit_button("Enviar feedback")
         
-    # Manejo de la respuesta del formulario
     if submitted_feedback:
-        # Validación de campos obligatorios
         if not nombre_profesional.strip():
             st.error("Por favor ingrese su nombre y apellido (campo obligatorio).")
         else:
-            # Validar otros campos obligatorios
             campos_obligatorios = [utilidad_resp, eficiencia_resp, intencion_uso, satisfaccion_claridad, satisfaccion_diseño, modificar_secciones, comentarios]
             campos_vacios = any([str(c).strip() == '' for c in campos_obligatorios])
             
@@ -357,46 +381,5 @@ with tabs[10]:
                 df_feedback.to_csv(FEEDBACK_FILE, index=False)
                 st.success("¡Gracias! Tu feedback fue registrado correctamente!")
 
-                resumen_compacto = (
-                    f"Feedback App\n"
-                    f"Nombre del profesional: {nombre_profesional}\n"
-                    f"Utilidad: {utilidad_resp} ({utilidad_val}/5)\n"
-                    f"Eficiencia: {eficiencia_resp} ({eficiencia_val}/5)\n"
-                    f"Intención de uso: {intencion_uso}/10\n"
-                    f"Satisfacción claridad: {satisfaccion_claridad} ({satisfaccion_claridad_val}/5)\n"
-                    f"Satisfacción diseño: {satisfaccion_diseño} ({satisfaccion_diseño_val}/5)\n"
-                    f"Modificar secciones: {modificar_secciones}\n"
-                    f"Comentarios: {comentarios}"
-                )
-                st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
-                st.code(resumen_compacto, language=None)
+                resumen_comp
 
-                copy_code = f'''
-<button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
-<script>
-document.getElementById('copyBtn').onclick = function(){{
-    navigator.clipboard.writeText(`{resumen_compacto}`);
-    alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
-}}
-</script>
-'''
-                components.html(copy_code, height=80)
-
-                mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
-                numero = "59898776605"
-                js_code = f'''
-<button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
-<script>
-document.getElementById('wappBtn').onclick = function(){{
-    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    var url = '';
-    if (isMobile){{
-        url = 'https://wa.me/?text={mensaje_codificado}';
-    }} else {{
-        url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
-    }}
-    window.open(url, '_blank');
-}}
-</script>
-'''
-                components.html(js_code, height=120)
