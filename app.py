@@ -442,4 +442,3 @@ document.getElementById('wappBtn').onclick = function(){{
                     mensaje = urllib.parse.quote(feedback_text)  # codifica el texto
                     url = f"https://wa.me/{numero}?text={mensaje}"
                     st.markdown(f"[Abrir WhatsApp]({url})", unsafe_allow_html=True)
-
