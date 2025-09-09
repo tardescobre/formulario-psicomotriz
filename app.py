@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 import urllib.parse
 import streamlit.components.v1 as components
+import streamlit_authenticator as stauth
 
 # ----------------------------
 # Configuración de la página
@@ -33,42 +34,44 @@ tabs = st.tabs([
     "Datos del paciente",
     "Antecedentes",
     "Entrevista inicial",
-    "Insumos",
+    "Exploración",
     "Tests psicomotrices",
     "Seguimiento del proceso",
-    "Entrevista de devolución",
     "Guardar Evaluación Completa",
-    "📋 Lista de pacientes registrados",
-    "Cuestionario de validación"
+    "Lista de pacientes registrados",
+    "Cuestionario de validación",
+    "Acceso restringido"
 ])
 
 # ----------------------------
 # Pestaña 1: Introducción
 # ----------------------------
 with tabs[0]:
-    st.markdown("<h1 style='text-align: center;'>Formulario Psicomotriz - Prototipo Web</h1>", unsafe_allow_html=True)
-
+    st.title("Formulario Psicomotriz - Prototipo Web")
     st.markdown("""
-    ### Resumen
+**Equipo responsable del proyecto:**  
+- 👩‍⚕️ Licenciada en Psicomotricidad  
+- 📊 Licenciado en Estadística
+""")
+    st.header("Resumen")
+    st.write("""
+Estimado profesional:
 
-    Estimado/a profesional:
+Este enlace que recibiste por WhatsApp te lleva a un prototipo de formulario web diseñado para digitalizar los procesos de evaluación y seguimiento de los pacientes en la clínica psicomotriz.
 
-    El enlace que recibiste por WhatsApp te dirige a un prototipo de formulario web diseñado para digitalizar los procesos de evaluación y seguimiento en la clínica psicomotriz.
+Si tu profesión es otra y recibiste el link es porque consideramos que tus aportes serán fundamentales para este proyecto en la posibilidad de ampliarlo hacia otras disciplinas en un futuro.
 
-    **Objetivos principales:**
-    - Validar la digitalización de formularios.
-    - Mejorar la eficiencia y precisión.
-    - Facilitar el seguimiento de la evolución de pacientes.
+Objetivo:
 
-    **¿Por qué recibiste este link?**
-                
-    Queremos recopilar información de los profesionales que participan.  
-    Tu colaboración permitirá validar el prototipo para realizar una investigación.  
+- Validar la digitalización de formularios.
+- Mejorar eficiencia y precisión.
+- Facilitar seguimiento de evolución de pacientes.
 
-    ---
+¿Por qué recibiste este link?
 
-    ⚠️ **Atención:** al finalizar el Cuestionario de validación en la última pestaña, les pedimos por favor que luego de llenar todos los campos den click en **Enviar feedback**, luego den click en **Copiar feedback** y finalmente den click en **Enviar feedback por WhatsApp**.
-    """)
+- Queremos recopilar información de los profesionales que participan.
+- Tu colaboración permitirá validar el prototipo para realizar una investigación.
+""")
 
 # ----------------------------
 # Pestaña 2: Registro de datos del profesional
@@ -98,7 +101,7 @@ with tabs[1]:
         else:
             st.error("Por favor completá todos los campos del profesional.")
 
-    st.markdown("En la pestaña siguiente comienza el prototipo de formulario web para cada paciente.", unsafe_allow_html=True)
+    st.markdown("En la pestaña siguiente comienza el prototipo de formulario para cada paciente.", unsafe_allow_html=True)
 
 # ----------------------------
 # Pestaña 3: Datos del paciente
@@ -190,15 +193,15 @@ with tabs[4]:
                 st.success("Entrevista inicial guardada correctamente!")
 
 # ----------------------------
-# Pestaña 6: Insumos
+# Pestaña 6: Exploración
 # ----------------------------
 with tabs[5]:
-    st.header("Insumos")
-    with st.form("form_insumos"):
-        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="insumos_img")
-        submitted_insumos = st.form_submit_button("Guardar insumos")
-        if submitted_insumos:
-            st.success("Insumos guardada correctamente!")
+    st.header("Exploración")
+    with st.form("form_exploracion"):
+        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="exploracion_img")
+        submitted_exploracion = st.form_submit_button("Guardar exploración")
+        if submitted_exploracion:
+            st.success("Exploración guardada correctamente!")
 
 # ----------------------------
 # Pestaña 7: Tests psicomotrices
@@ -234,46 +237,15 @@ with tabs[7]:
         ideas_vinculares = st.text_area("Ideas cualitativas sobre el proceso vincular", key="seguimiento_ideas")
         motor = st.text_area("Motor", key="seguimiento_motor")
         afectivo = st.text_area("Afectivo", key="seguimiento_afectivo")
-        relacional = st.text_area("Cognitivo", key="seguimiento_cognitivo")
+        relacional = st.text_area("Relacional", key="seguimiento_relacional")
         submitted_seguimiento = st.form_submit_button("Guardar seguimiento")
         if submitted_seguimiento:
             st.success("Seguimiento guardado correctamente!")
 
 # ----------------------------
-# Pestaña 9: Entrevista de devolución
+# Pestaña 9: Guardar evaluación completa
 # ----------------------------
 with tabs[8]:
-    st.header("📝 Entrevista de Devolución")
-    with st.form("form_devolucion"):
-        fecha = st.date_input("Fecha", value=datetime.today(), key="devol_fecha")
-        participantes = st.text_input("Participantes presentes (familiares, docentes, terapeuta...)", key="devol_participantes")
-        duracion = st.text_input("Duración aproximada", key="devol_duracion")
-
-        st.subheader("Síntesis de evolución")
-        motor_dev = st.text_area("Área Motora", key="devol_motor")
-        afectivo_dev = st.text_area("Área Afectiva", key="devol_afectivo")
-        cognitivo_dev = st.text_area("Área Cognitiva", key="devol_cognitivo")
-
-        st.subheader("Retroalimentación de la familia/docente")
-        retro = st.text_area("Opiniones, preguntas u observaciones", key="devol_retro")
-
-        st.subheader("Plan de acción")
-        hogar = st.text_area("Recomendaciones para el hogar", key="devol_hogar")
-        aula = st.text_area("Orientaciones para el aula", key="devol_aula")
-        proximas = st.text_area("Sugerencias para próximas sesiones", key="devol_proximas")
-
-        st.subheader("Cierre")
-        acuerdo = st.text_area("Acuerdos con la familia", key="devol_acuerdo")
-        obs_finales = st.text_area("Observaciones finales", key="devol_obs")
-
-        submitted_devolucion = st.form_submit_button("Guardar Entrevista de Devolución")
-        if submitted_devolucion:
-            st.success("La entrevista de devolución ha sido registrada correctamente.")
-
-# ----------------------------
-# Pestaña 10: Guardar evaluación completa
-# ----------------------------
-with tabs[9]:
     st.header("Guardar Evaluación Completa")
     with st.form("form_guardar"):
         comentario_final = st.text_area("Comentarios finales antes de guardar evaluación", key="guardar_comentario")
@@ -282,9 +254,9 @@ with tabs[9]:
             st.success("Evaluación completa guardada!")
 
 # ----------------------------
-# Pestaña 11: Lista de pacientes registrados
+# Pestaña 10: Lista de pacientes registrados
 # ----------------------------
-with tabs[10]:
+with tabs[9]:
     st.header("📋 Lista de pacientes registrados")
     if os.path.exists(PACIENTES_FILE):
         df_pacientes = pd.read_csv(PACIENTES_FILE)
@@ -298,147 +270,214 @@ with tabs[10]:
         st.info("No hay pacientes registrados aún.")
 
 # ----------------------------
-# Pestaña 12: Cuestionario de validación
+# Pestaña 11: Cuestionario de validación
 # ----------------------------
-with tabs[11]:
+with tabs[10]:
     st.header("✅ Cuestionario de validación de la app")
     
     # Primero pedir el nombre del profesional (obligatorio)
     nombre_profesional = st.text_input("Nombre y apellido del profesional*", key="feedback_nombre")
     
-    with st.form("form_feedback"):
-        utilidad_map = {"Mucho": 5, "Algo": 3, "Nada": 1}
-        eficiencia_map = {"Sí": 5, "Parcialmente": 3, "No": 1}
-        satisfaccion_map = {"Sí": 5, "Parcialmente": 3, "No": 1}
-        diseño_map = {"Muy bueno": 5, "Bueno": 4, "Regular": 3, "Malo": 2, "Muy malo": 1}
+    utilidad_map = {"Mucho": 5, "Algo": 3, "Nada": 1}
+    eficiencia_map = {"Sí": 5, "Parcialmente": 3, "No": 1}
+    satisfaccion_map = {"Sí": 5, "Parcialmente": 3, "No": 1}
+    diseño_map = {"Muy bueno": 5, "Bueno": 4, "Regular": 3, "Malo": 2, "Muy malo": 1}
 
-        utilidad_resp = st.radio(
-            "¿Este formulario digital le facilitaría su trabajo comparado con el método actual?",
-            ["Mucho", "Algo", "Nada"], key="feedback_utilidad"
-        )
-        eficiencia_resp = st.radio(
-            "¿Cree que este formulario ayuda a que sus procesos sean más eficientes?",
-            ["Sí", "Parcialmente", "No"], key="feedback_eficiencia"
-        )
-        intencion_uso = st.slider(
-            "En una escala del 0 al 10, ¿qué probabilidad tiene de usar esta app regularmente?",
-            0, 10, 7, key="feedback_intencion"
-        )
-        satisfaccion_claridad = st.radio(
-            "¿Considera que el formulario es claro y fácil de completar?",
-            ["Sí", "Parcialmente", "No"], key="feedback_satisfaccion_claridad"
-        )
-        satisfaccion_diseño = st.radio(
-            "Cómo evalúa el diseño visual de la app?",
-            ["Muy bueno", "Bueno", "Regular", "Malo", "Muy malo"], key="feedback_satisfaccion_diseño"
-        )
-        modificar_secciones = st.text_area(
-            "¿Qué agregarían o modificarían en las secciones existentes?",
-            key="feedback_modificar"
-        )
-        comentarios = st.text_area(
-            "Comentarios o sugerencias adicionales (respuesta libre)",
-            key="feedback_comentarios"
-        )
-        
-        submitted_feedback = st.form_submit_button("Enviar feedback")
-        
-    # Manejo de la respuesta del formulario
-    if submitted_feedback:
+    utilidad_resp = st.radio(
+        "¿Este formulario digital le facilitaría su trabajo comparado con el método actual?",
+        ["Mucho", "Algo", "Nada"], key="feedback_utilidad"
+    )
+    eficiencia_resp = st.radio(
+        "¿Cree que este formulario ayuda a que sus procesos sean más eficientes?",
+        ["Sí", "Parcialmente", "No"], key="feedback_eficiencia"
+    )
+    intencion_uso = st.slider(
+        "En una escala del 0 al 10, ¿qué probabilidad tiene de usar esta app regularmente?",
+        0, 10, 7, key="feedback_intencion"
+    )
+    satisfaccion_claridad = st.radio(
+        "¿Considera que el formulario es claro y fácil de completar?",
+        ["Sí", "Parcialmente", "No"], key="feedback_satisfaccion_claridad"
+    )
+    satisfaccion_diseño = st.radio(
+        "Cómo evalúa el diseño visual de la app?",
+        ["Muy bueno", "Bueno", "Regular", "Malo", "Muy malo"], key="feedback_satisfaccion_diseño"
+    )
+    modificar_secciones = st.text_area(
+        "¿Qué secciones modificaría o agregaría?",
+        key="feedback_modificar"
+    )
+    comentarios = st.text_area(
+        "Comentarios adicionales",
+        key="feedback_comentarios"
+    )
+    
+    # Botón para enviar el feedback
+    if st.button("Enviar feedback", key="btn_enviar_feedback"):
         # Validación de campos obligatorios
         if not nombre_profesional.strip():
             st.error("Por favor ingrese su nombre y apellido (campo obligatorio).")
         else:
-            # Validar otros campos obligatorios
-            campos_obligatorios = [utilidad_resp, eficiencia_resp, intencion_uso, satisfaccion_claridad, satisfaccion_diseño, modificar_secciones, comentarios]
-            campos_vacios = any([str(c).strip() == '' for c in campos_obligatorios])
-            
-            if campos_vacios:
-                st.error("Por favor completá todas las respuestas obligatorias antes de enviar.")
+            # Verificar si el profesional está registrado
+            registrado = False
+            if os.path.exists(DATA_FILE_PROF):
+                df_prof = pd.read_csv(DATA_FILE_PROF)
+                registrado = nombre_profesional.strip().lower() in [str(n).strip().lower() for n in df_prof["Nombre"]]
+            if not registrado:
+                st.error("El nombre ingresado no está registrado como profesional. Por favor regístrese primero en la pestaña correspondiente.")
             else:
-                utilidad_val = utilidad_map[utilidad_resp]
-                eficiencia_val = eficiencia_map[eficiencia_resp]
-                satisfaccion_claridad_val = satisfaccion_map[satisfaccion_claridad]
-                satisfaccion_diseño_val = diseño_map[satisfaccion_diseño]
-
-                nueva_fila = pd.DataFrame({
-                    "nombre_profesional": [nombre_profesional],
-                    "utilidad": [utilidad_val],
-                    "utilidad_opcion": [utilidad_resp],
-                    "eficiencia": [eficiencia_val],
-                    "eficiencia_opcion": [eficiencia_resp],
-                    "intencion_uso": [intencion_uso],
-                    "satisfaccion_claridad": [satisfaccion_claridad_val],
-                    "satisfaccion_claridad_opcion": [satisfaccion_claridad],
-                    "satisfaccion_diseño": [satisfaccion_diseño_val],
-                    "satisfaccion_diseño_opcion": [satisfaccion_diseño],
-                    "modificar_secciones": [modificar_secciones],
-                    "comentarios": [comentarios],
-                    "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-                })
-
-                if os.path.exists(FEEDBACK_FILE):
-                    df_feedback = pd.read_csv(FEEDBACK_FILE)
-                    df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
+                # Validar otros campos obligatorios
+                campos_obligatorios = [utilidad_resp, eficiencia_resp, intencion_uso, satisfaccion_claridad, satisfaccion_diseño]
+                campos_vacios = any([str(c).strip() == '' for c in campos_obligatorios])
+                if campos_vacios:
+                    st.error("Por favor completá todas las respuestas obligatorias antes de enviar.")
                 else:
-                    df_feedback = nueva_fila
-                df_feedback.to_csv(FEEDBACK_FILE, index=False)
-                st.success("¡Gracias! Tu feedback fue registrado correctamente!")
+                    utilidad_val = utilidad_map[utilidad_resp]
+                    eficiencia_val = eficiencia_map[eficiencia_resp]
+                    satisfaccion_claridad_val = satisfaccion_map[satisfaccion_claridad]
+                    satisfaccion_diseño_val = diseño_map[satisfaccion_diseño]
 
-                # Generar resumen compacto (texto que se copiará y enviará por WhatsApp)
-                resumen_compacto = (
-                    f"Feedback App\n"
-                    f"Nombre del profesional: {nombre_profesional}\n"
-                    f"Utilidad: {utilidad_resp} ({utilidad_val}/5)\n"
-                    f"Eficiencia: {eficiencia_resp} ({eficiencia_val}/5)\n"
-                    f"Intención de uso: {intencion_uso}/10\n"
-                    f"Satisfacción claridad: {satisfaccion_claridad} ({satisfaccion_claridad_val}/5)\n"
-                    f"Satisfacción diseño: {satisfaccion_diseño} ({satisfaccion_diseño_val}/5)\n"
-                    f"Modificar secciones: {modificar_secciones}\n"
-                    f"Comentarios: {comentarios}"
-                )
-                st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
-                st.code(resumen_compacto, language=None)
+                    # Buscar cédula y profesión en profesionales.csv
+                    cedula = ''
+                    profesion = ''
+                    if os.path.exists(DATA_FILE_PROF):
+                        df_prof = pd.read_csv(DATA_FILE_PROF)
+                        match = df_prof[df_prof["Nombre"].str.strip().str.lower() == nombre_profesional.strip().lower()]
+                        if not match.empty:
+                            cedula = match.iloc[0]["Cédula"]
+                            profesion = match.iloc[0]["Profesión"]
+                    nueva_fila = pd.DataFrame({
+                        "nombre_profesional": [nombre_profesional],
+                        "cedula_profesional": [cedula],
+                        "profesion_profesional": [profesion],
+                        "utilidad": [utilidad_val],
+                        "utilidad_opcion": [utilidad_resp],
+                        "eficiencia": [eficiencia_val],
+                        "eficiencia_opcion": [eficiencia_resp],
+                        "intencion_uso": [intencion_uso],
+                        "satisfaccion_claridad": [satisfaccion_claridad_val],
+                        "satisfaccion_claridad_opcion": [satisfaccion_claridad],
+                        "satisfaccion_diseño": [satisfaccion_diseño_val],
+                        "satisfaccion_diseño_opcion": [satisfaccion_diseño],
+                        "modificar_secciones": [modificar_secciones],
+                        "comentarios": [comentarios],
+                        "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+                    })
 
-                # Botón de copiar (JS)
-                copy_code = f'''
-<button id="copyBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;">📋 Copiar feedback</button>
-<script>
-document.getElementById('copyBtn').onclick = function(){{
-    navigator.clipboard.writeText(`{resumen_compacto}`);
-    alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
-}}
-</script>
-'''
-                components.html(copy_code, height=80)
+                    if os.path.exists(FEEDBACK_FILE):
+                        df_feedback = pd.read_csv(FEEDBACK_FILE)
+                        df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
+                    else:
+                        df_feedback = nueva_fila
+                    df_feedback.to_csv(FEEDBACK_FILE, index=False)
+                    st.success("¡Gracias! Tu feedback fue registrado correctamente!")
 
-                # Botón JS que abre WhatsApp (móvil o web)
-                mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
-                numero = "59898776605"
-                js_code = f'''
-<button id="wappBtn" style="background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;">💬 Enviar feedback por WhatsApp</button>
-<script>
-document.getElementById('wappBtn').onclick = function(){{
-    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    var url = '';
-    if (isMobile){{
-        url = 'https://wa.me/?text={mensaje_codificado}';
-    }} else {{
-        url = 'https://web.whatsapp.com/send?phone={numero}&text={mensaje_codificado}';
+                    resumen_compacto = (
+                        f"Feedback App\n"
+                        f"Nombre del profesional: {nombre_profesional}\n"
+                        f"Utilidad: {utilidad_resp} ({utilidad_val}/5)\n"
+                        f"Eficiencia: {eficiencia_resp} ({eficiencia_val}/5)\n"
+                        f"Intención de uso: {intencion_uso}/10\n"
+                        f"Satisfacción claridad: {satisfaccion_claridad} ({satisfaccion_claridad_val}/5)\n"
+                        f"Satisfacción diseño: {satisfaccion_diseño} ({satisfaccion_diseño_val}/5)\n"
+                        f"Modificar secciones: {modificar_secciones}\n"
+                        f"Comentarios: {comentarios}"
+                    )
+                    st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
+                    st.code(resumen_compacto, language=None)
+
+                    # Botón para copiar al portapapeles
+                    resumen_js = resumen_compacto.replace("'", "\\'").replace("\n", "\\n")
+                    copy_code = f"""
+    <button id='copyBtn' style='background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;'>📋 Copiar feedback</button>
+    <script>
+    document.getElementById('copyBtn').onclick = function() {{
+        navigator.clipboard.writeText('{resumen_js}');
+        alert('¡Resumen copiado! Ahora pégalo en WhatsApp.');
     }}
-    window.open(url, '_blank');
-}}
-</script>
-'''
-                components.html(js_code, height=120)
+    </script>
+    """
+                    components.html(copy_code, height=80)
 
-                # --- AQUÍ agregamos y guardamos el texto en session_state para uso con el botón Python ---
-                st.session_state["feedback_text"] = resumen_compacto
+                    # SOLO UN BOTÓN DE WHATSAPP (VERDE) - ELIMINAR EL SEGUNDO
+                    mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
+                    numero = "59898776605"
+                    js_code = f"""
+    <button id='wappBtn' style='background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;'>💬 Enviar feedback por WhatsApp</button>
+    <script>
+    document.getElementById('wappBtn').onclick = function() {{
+        var url = 'https://wa.me/{numero}?text={mensaje_codificado}';
+        window.open(url, '_blank');
+    }}
+    </script>
+    """
+                    components.html(js_code, height=120)
 
-                # Código solicitado por vos: botón Python que usa st.session_state["feedback_text"]
-                feedback_text = st.session_state.get("feedback_text", "")
-                if st.button("📲 Enviar Feedback por WhatsApp"):
-                    numero = "59898776605"  # tu número fijo en formato internacional
-                    mensaje = urllib.parse.quote(feedback_text)  # codifica el texto
-                    url = f"https://wa.me/{numero}?text={mensaje}"
-                    st.markdown(f"[Abrir WhatsApp]({url})", unsafe_allow_html=True)
+# ----------------------------
+# Pestaña 12: Acceso restringido para descarga de datos
+# ----------------------------
+with tabs[11]:
+    st.header("🔐 Acceso restringido para descarga de datos")
+    
+    # Configuración de usuario autorizado
+    password = 'diego123'
+    hashed_password = stauth.Hasher().hash(password)
+    credentials = {
+        "usernames": {
+            "diego@ejemplo.com": {
+                "name": "Diego",
+                "password": hashed_password
+            }
+        }
+    }
+    
+    authenticator = stauth.Authenticate(
+        credentials=credentials,
+        cookie_name='auth',
+        key='auth_key',
+        cookie_expiry_days=1
+    )
+
+    st.subheader("Login para descarga de datos")
+    st.info("Por favor ingresa tus credenciales para acceder a la descarga.")
+    
+    authentication_status = authenticator.login(location='main')
+    
+    if authentication_status:
+        nombre_usuario = authenticator.credentials['usernames'][authenticator.username]['name'] if authenticator.username else authenticator.username
+        st.success(f"Bienvenido {nombre_usuario}. Puedes descargar los datos.")
+        
+        # Descargar profesionales.csv
+        if os.path.exists(DATA_FILE_PROF):
+            df_prof = pd.read_csv(DATA_FILE_PROF)
+            st.download_button(
+                label="Descargar registro de profesionales (CSV)",
+                data=df_prof.to_csv(index=False).encode('utf-8'),
+                file_name="profesionales.csv",
+                mime="text/csv"
+            )
+        
+        # Descargar feedback_app.csv
+        if os.path.exists(FEEDBACK_FILE):
+            df_feedback = pd.read_csv(FEEDBACK_FILE)
+            st.download_button(
+                label="Descargar respuestas del cuestionario (CSV)",
+                data=df_feedback.to_csv(index=False).encode('utf-8'),
+                file_name="feedback_app.csv",
+                mime="text/csv"
+            )
+            
+        # Descargar pacientes.csv
+        if os.path.exists(PACIENTES_FILE):
+            df_pacientes = pd.read_csv(PACIENTES_FILE)
+            st.download_button(
+                label="Descargar registro de pacientes (CSV)",
+                data=df_pacientes.to_csv(index=False).encode('utf-8'),
+                file_name="pacientes.csv",
+                mime="text/csv"
+            )
+            
+    elif authentication_status is False:
+        st.error('Usuario o contraseña incorrectos.')
+    elif authentication_status is None:
+        st.info('Por favor ingresa tus credenciales para acceder a la descarga.')
