@@ -34,7 +34,7 @@ tabs = st.tabs([
     "Datos del paciente",
     "Antecedentes",
     "Entrevista inicial",
-    "Exploración",
+    "Insumos",
     "Tests psicomotrices",
     "Seguimiento del proceso",
     "Guardar Evaluación Completa",
@@ -47,30 +47,47 @@ tabs = st.tabs([
 # Pestaña 1: Introducción
 # ----------------------------
 with tabs[0]:
-    st.title("Formulario Psicomotriz - Prototipo Web")
+    st.markdown("<h1 style='text-align: center;'>Formulario Psicomotriz - Prototipo Web</h1>", unsafe_allow_html=True)
+
     st.markdown("""
 **Equipo responsable del proyecto:**  
-- 👩‍⚕️ Licenciada en Psicomotricidad  
-- 📊 Licenciado en Estadística
+- 👩‍⚕️ **Licenciada en Psicomotricidad**  
+- 📊 **Licenciado en Estadística**
 """)
+    
     st.header("Resumen")
     st.write("""
 Estimado profesional:
 
-Este enlace que recibiste por WhatsApp te lleva a un prototipo de formulario web diseñado para digitalizar los procesos de evaluación y seguimiento de los pacientes en la clínica psicomotriz.
+Has recibido este enlace porque tu experiencia es valiosa para nosotros. Te invitamos a conocer un **prototipo de formulario web** pensado para digitalizar los procesos de evaluación y seguimiento de pacientes en la clínica psicomotriz.
 
-Si tu profesión es otra y recibiste el link es porque consideramos que tus aportes serán fundamentales para este proyecto en la posibilidad de ampliarlo hacia otras disciplinas en un futuro.
+Si tu área profesional es distinta, es porque consideramos que **tus aportes serán fundamentales para este proyecto en la posibilidad de ampliarlo hacia otras disciplinas en un futuro**.
 
-Objetivo:
+**Nuestros objetivos:**
 
-- Validar la digitalización de formularios.
-- Mejorar eficiencia y precisión.
-- Facilitar seguimiento de evolución de pacientes.
+- **Digitalizar y modernizar los formularios de evaluación.**  
+- **Mejorar la eficiencia y precisión** en la recopilación de datos.  
+- **Facilitar el seguimiento del proceso de cada paciente.**
 
-¿Por qué recibiste este link?
+**¿Por qué queremos tu colaboración?**
 
-- Queremos recopilar información de los profesionales que participan.
-- Tu colaboración permitirá validar el prototipo para realizar una investigación.
+- **Recopilar información** de los profesionales que participan.  
+- Obtener datos que nos permitan **perfeccionar la herramienta** y potenciar futuras investigaciones.
+""")
+
+    # Espacio para empujar el bloque al final
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
+
+    st.markdown("""
+---
+✅ **Cómo completar este formulario**  
+
+1. En la pestaña **Registro de datos del profesional**, ingrese sus datos y presione **“Registrar datos del profesional”**.  
+2. Luego de interactuar con el prototipo, llene los campos del **Cuestionario de validación** y haga clic en **“Enviar feedback”**.  
+3. Presione **“Copiar feedback”** para guardar su respuesta.  
+4. Finalmente, haga clic en **“Enviar feedback por WhatsApp”**, lo que lo llevará directamente a mi número de contacto para compartir la información.
+
+**Tu opinión es clave para hacer de este prototipo una herramienta realmente útil.** ¡Gracias por tu tiempo y colaboración!
 """)
 
 # ----------------------------
@@ -193,15 +210,15 @@ with tabs[4]:
                 st.success("Entrevista inicial guardada correctamente!")
 
 # ----------------------------
-# Pestaña 6: Exploración
+# Pestaña 6: Insumos
 # ----------------------------
 with tabs[5]:
-    st.header("Exploración")
-    with st.form("form_exploracion"):
-        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="exploracion_img")
-        submitted_exploracion = st.form_submit_button("Guardar exploración")
-        if submitted_exploracion:
-            st.success("Exploración guardada correctamente!")
+    st.header("Insumos")
+    with st.form("form_insumos"):
+        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="insumos_img")
+        submitted_insumos = st.form_submit_button("Guardar insumos")
+        if submitted_insumos:
+            st.success("Insumos guardada correctamente!")
 
 # ----------------------------
 # Pestaña 7: Tests psicomotrices
@@ -237,7 +254,7 @@ with tabs[7]:
         ideas_vinculares = st.text_area("Ideas cualitativas sobre el proceso vincular", key="seguimiento_ideas")
         motor = st.text_area("Motor", key="seguimiento_motor")
         afectivo = st.text_area("Afectivo", key="seguimiento_afectivo")
-        relacional = st.text_area("Relacional", key="seguimiento_relacional")
+        relacional = st.text_area("Cognitivo", key="seguimiento_cognitivo")
         submitted_seguimiento = st.form_submit_button("Guardar seguimiento")
         if submitted_seguimiento:
             st.success("Seguimiento guardado correctamente!")
