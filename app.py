@@ -34,7 +34,7 @@ tabs = st.tabs([
     "Datos del paciente",
     "Antecedentes",
     "Entrevista inicial",
-    "Exploración",
+    "Insumos",
     "Tests psicomotrices",
     "Seguimiento del proceso",
     "Guardar Evaluación Completa",
@@ -71,6 +71,15 @@ Objetivo:
 
 - Queremos recopilar información de los profesionales que participan.
 - Tu colaboración permitirá validar el prototipo para realizar una investigación.
+""")
+
+    st.markdown("""
+✅ **Cómo completar este formulario**  
+
+1. En la **Pestaña – Registro de datos del profesional**, ingrese sus datos y presione el botón **“Registrar datos del profesional”**.  
+2. Luego de interactuar con el prototipo, llene los campos del **Cuestionario de validación** y haga clic en **“Enviar feedback”**.  
+3. Presione el botón **“Copiar feedback”** para guardar su respuesta.  
+4. Finalmente, haga clic en **“Enviar feedback por WhatsApp”**, lo que lo llevará directamente a mi número de contacto para compartir la información.
 """)
 
 # ----------------------------
@@ -193,15 +202,15 @@ with tabs[4]:
                 st.success("Entrevista inicial guardada correctamente!")
 
 # ----------------------------
-# Pestaña 6: Exploración
+# Pestaña 6: Insumos
 # ----------------------------
 with tabs[5]:
-    st.header("Exploración")
-    with st.form("form_exploracion"):
-        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="exploracion_img")
-        submitted_exploracion = st.form_submit_button("Guardar exploración")
-        if submitted_exploracion:
-            st.success("Exploración guardada correctamente!")
+    st.header("Insumos")
+    with st.form("form_insumos"):
+        imagen = st.file_uploader("Ingresar imagen", type=["jpg","png","jpeg"], key="insumos_img")
+        submitted_insumos = st.form_submit_button("Guardar insumos")
+        if submitted_insumos:
+            st.success("Insumos guardada correctamente!")
 
 # ----------------------------
 # Pestaña 7: Tests psicomotrices
