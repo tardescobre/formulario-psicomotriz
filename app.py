@@ -254,7 +254,7 @@ with tabs[7]:
         ideas_vinculares = st.text_area("Ideas cualitativas sobre el proceso vincular", key="seguimiento_ideas")
         motor = st.text_area("Motor", key="seguimiento_motor")
         afectivo = st.text_area("Afectivo", key="seguimiento_afectivo")
-        relacional = st.text_area("Relacional", key="seguimiento_relacional")
+        relacional = st.text_area("Cognitivo", key="seguimiento_cognitivo")
         submitted_seguimiento = st.form_submit_button("Guardar seguimiento")
         if submitted_seguimiento:
             st.success("Seguimiento guardado correctamente!")
