@@ -47,12 +47,14 @@ tabs = st.tabs([
 # Pestaña 1: Introducción
 # ----------------------------
 with tabs[0]:
-    st.title("Formulario Psicomotriz - Prototipo Web")
+    st.markdown("<h1 style='text-align: center;'>Formulario Psicomotriz - Prototipo Web</h1>", unsafe_allow_html=True)
+
     st.markdown("""
 **Equipo responsable del proyecto:**  
 - 👩‍⚕️ Licenciada en Psicomotricidad  
 - 📊 Licenciado en Estadística
 """)
+    
     st.header("Resumen")
     st.write("""
 Estimado profesional:
@@ -73,7 +75,11 @@ Objetivo:
 - Tu colaboración permitirá validar el prototipo para realizar una investigación.
 """)
 
+    # Espacio para empujar el bloque al final
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
+
     st.markdown("""
+---
 ✅ **Cómo completar este formulario**  
 
 1. En la **Pestaña – Registro de datos del profesional**, ingrese sus datos y presione el botón **“Registrar datos del profesional”**.  
