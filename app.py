@@ -419,65 +419,87 @@ with tabs[10]:
 with tabs[11]:
     st.header("🔐 Acceso restringido para descarga de datos")
     
-    # Configuración de usuario autorizado
-    password = 'diego123'
-    hashed_password = stauth.Hasher().hash(password)
-    credentials = {
-        "usernames": {
-            "diego@ejemplo.com": {
-                "name": "Diego",
-                "password": hashed_password
-            }
-        }
-    }
+    # Inicializar estado de sesión si no existe
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+    if 'show_login' not in st.session_state:
+        st.session_state.show_login = False
     
-    authenticator = stauth.Authenticate(
-        credentials=credentials,
-        cookie_name='auth',
-        key='auth_key',
-        cookie_expiry_days=1
-    )
-
-    st.subheader("Login para descarga de datos")
-    st.info("Por favor ingresa tus credenciales para acceder a la descarga.")
+    if not st.session_state.logged_in:
+        if not st.session_state.show_login:
+            st.info("Por favor ingresa tus credenciales para acceder a la descarga.")
+            if st.button("🎯 Iniciar sesión para descargar archivos", key="btn_show_login"):
+                st.session_state.show_login = True
+                st.rerun()
+        else:
+            st.subheader("Login para descarga de datos")
+            
+            # Sistema de login
+            with st.form("login_form"):
+                username = st.text_input("📧 Email", key="login_user")
+                password = st.text_input("🔒 Contraseña", type="password", key="login_pass")
+                login_button = st.form_submit_button("🚀 Iniciar sesión")
+                
+                if login_button:
+                    if username == "diego@ejemplo.com" and password == "diego123":
+                        st.session_state.logged_in = True
+                        st.session_state.show_login = False
+                        st.success("¡Login exitoso! Bienvenido Diego.")
+                        st.rerun()
+                    else:
+                        st.error("❌ Usuario o contraseña incorrectos")
+            
+            if st.button("↩️ Volver atrás"):
+                st.session_state.show_login = False
+                st.rerun()
     
-    authentication_status = authenticator.login(location='main')
-    
-    if authentication_status:
-        nombre_usuario = authenticator.credentials['usernames'][authenticator.username]['name'] if authenticator.username else authenticator.username
-        st.success(f"Bienvenido {nombre_usuario}. Puedes descargar los datos.")
+    else:
+        # Usuario logueado - mostrar opciones de descarga
+        st.success("✅ ¡Sesión iniciada correctamente! Puedes descargar los archivos.")
+        
+        # Botón para cerrar sesión
+        if st.button("🚪 Cerrar sesión"):
+            st.session_state.logged_in = False
+            st.rerun()
+        
+        st.markdown("---")
+        st.subheader("📥 Descargar archivos CSV")
         
         # Descargar profesionales.csv
         if os.path.exists(DATA_FILE_PROF):
             df_prof = pd.read_csv(DATA_FILE_PROF)
             st.download_button(
-                label="Descargar registro de profesionales (CSV)",
+                label="📋 Descargar registro de profesionales",
                 data=df_prof.to_csv(index=False).encode('utf-8'),
                 file_name="profesionales.csv",
-                mime="text/csv"
+                mime="text/csv",
+                key="download_prof"
             )
-        
+        else:
+            st.info("ℹ️ El archivo profesionales.csv no existe o aún no se ha generado.")
+
         # Descargar feedback_app.csv
         if os.path.exists(FEEDBACK_FILE):
             df_feedback = pd.read_csv(FEEDBACK_FILE)
             st.download_button(
-                label="Descargar respuestas del cuestionario (CSV)",
+                label="📊 Descargar respuestas del cuestionario",
                 data=df_feedback.to_csv(index=False).encode('utf-8'),
                 file_name="feedback_app.csv",
-                mime="text/csv"
+                mime="text/csv",
+                key="download_feedback"
             )
-            
+        else:
+            st.info("ℹ️ El archivo feedback_app.csv no existe o aún no se ha generado.")
+
         # Descargar pacientes.csv
         if os.path.exists(PACIENTES_FILE):
             df_pacientes = pd.read_csv(PACIENTES_FILE)
             st.download_button(
-                label="Descargar registro de pacientes (CSV)",
+                label="👥 Descargar registro de pacientes",
                 data=df_pacientes.to_csv(index=False).encode('utf-8'),
                 file_name="pacientes.csv",
-                mime="text/csv"
+                mime="text/csv",
+                key="download_pacientes"
             )
-            
-    elif authentication_status is False:
-        st.error('Usuario o contraseña incorrectos.')
-    elif authentication_status is None:
-        st.info('Por favor ingresa tus credenciales para acceder a la descarga.')
+        else:
+            st.info("ℹ️ El archivo pacientes.csv no existe o aún no se ha generado.")
