@@ -508,15 +508,4 @@ with tabs[11]:
         else:
             st.info("ℹ️ El archivo feedback_app.csv no existe o aún no se ha generado.")
 
-        # Descargar pacientes.csv
-        if os.path.exists(PACIENTES_FILE):
-            df_pacientes = pd.read_csv(PACIENTES_FILE)
-            st.download_button(
-                label="👥 Descargar registro de pacientes",
-                data=df_pacientes.to_csv(index=False).encode('utf-8'),
-                file_name="pacientes.csv",
-                mime="text/csv",
-                key="download_pacientes"
-            )
-        else:
-            st.info("ℹ️ El archivo pacientes.csv no existe o aún no se ha generado.")
+
