@@ -141,7 +141,7 @@ with tabs[2]:
     edited_df = st.data_editor(df_pacientes, num_rows="dynamic", use_container_width=True, key="pacientes_editor")
 
     if st.button("Guardar cambios en la tabla", key="guardar_pacientes"):
-    edited_df.to_csv(PACIENTES_FILE, index=False, encoding='utf-8-sig')
+        edited_df.to_csv(PACIENTES_FILE, index=False, encoding='utf-8-sig')
         st.success("Cambios guardados correctamente.")
 
 # ----------------------------
