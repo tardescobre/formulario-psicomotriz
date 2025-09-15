@@ -113,7 +113,7 @@ with tabs[1]:
                 df = pd.concat([df, nueva_fila], ignore_index=True)
             else:
                 df = nueva_fila
-            df.to_csv(DATA_FILE_PROF, index=False)
+            df.to_csv(DATA_FILE_PROF, index=False, encoding='utf-8-sig')
             st.success(f"Gracias {nombre_prof}, tus datos fueron registrados correctamente.")
         else:
             st.error("Por favor completá todos los campos del profesional.")
@@ -141,7 +141,7 @@ with tabs[2]:
     edited_df = st.data_editor(df_pacientes, num_rows="dynamic", use_container_width=True, key="pacientes_editor")
 
     if st.button("Guardar cambios en la tabla", key="guardar_pacientes"):
-        edited_df.to_csv(PACIENTES_FILE, index=False)
+    edited_df.to_csv(PACIENTES_FILE, index=False, encoding='utf-8-sig')
         st.success("Cambios guardados correctamente.")
 
 # ----------------------------
@@ -386,7 +386,7 @@ with tabs[10]:
                         df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
                     else:
                         df_feedback = nueva_fila
-                    df_feedback.to_csv(FEEDBACK_FILE, index=False)
+                    df_feedback.to_csv(FEEDBACK_FILE, index=False, encoding='utf-8-sig')
                     st.success("¡Gracias! Tu feedback fue registrado correctamente!")
 
                     resumen_compacto = (
