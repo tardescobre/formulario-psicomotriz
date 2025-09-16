@@ -495,17 +495,18 @@ with tabs[11]:
         else:
             st.info("ℹ️ El archivo profesionales.csv no existe o aún no se ha generado.")
 
-        # Descargar feedback_app.csv
-        if os.path.exists(FEEDBACK_FILE):
-            df_feedback = pd.read_csv(FEEDBACK_FILE)
+        # Descargar feedback_app_limpio.csv
+        feedback_limpio_path = os.path.join(DATA_FOLDER, "feedback_app_limpio.csv")
+        if os.path.exists(feedback_limpio_path):
+            df_feedback_limpio = pd.read_csv(feedback_limpio_path)
             st.download_button(
-                label="📊 Descargar respuestas del cuestionario",
-                data=df_feedback.to_csv(index=False).encode('utf-8'),
-                file_name="feedback_app.csv",
+                label="📊 Descargar respuestas del cuestionario (limpio)",
+                data=df_feedback_limpio.to_csv(index=False).encode('utf-8'),
+                file_name="feedback_app_limpio.csv",
                 mime="text/csv",
-                key="download_feedback"
+                key="download_feedback_limpio"
             )
         else:
-            st.info("ℹ️ El archivo feedback_app.csv no existe o aún no se ha generado.")
+            st.info("ℹ️ El archivo feedback_app_limpio.csv no existe o aún no se ha generado.")
 
 
