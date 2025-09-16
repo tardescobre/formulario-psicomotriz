@@ -332,80 +332,87 @@ with tabs[10]:
     # Botón para enviar el feedback
     if st.button("Enviar feedback", key="btn_enviar_feedback"):
         # Validación de campos obligatorios
+        errores = []
         if not nombre_profesional.strip():
-            st.error("Por favor ingrese su nombre y apellido (campo obligatorio).")
+            errores.append("Por favor ingrese su nombre y apellido (campo obligatorio).")
+        if utilidad_resp == "" or eficiencia_resp == "" or satisfaccion_claridad == "" or satisfaccion_diseño == "" or intencion_uso is None:
+            errores.append("Por favor completá todas las respuestas obligatorias antes de enviar.")
+        # Limitar comas y puntos en comentarios y modificar_secciones
+        if comentarios.strip() == "" or modificar_secciones.strip() == "":
+            errores.append("No se permiten comentarios o modificaciones vacíos.")
+        if comentarios.count(",") > 1 or comentarios.count(".") > 3:
+            errores.append("No se permiten más de una coma o más de tres puntos en los comentarios.")
+        if modificar_secciones.count(",") > 1 or modificar_secciones.count(".") > 3:
+            errores.append("No se permiten más de una coma o más de tres puntos en las modificaciones.")
+        if errores:
+            for err in errores:
+                st.error(err)
         else:
             # Verificar si el profesional está registrado
             registrado = False
             if os.path.exists(DATA_FILE_PROF):
-                df_prof = pd.read_csv(DATA_FILE_PROF)
+                df_prof = pd.read_csv(DATA_FILE_PROF, encoding='utf-8-sig')
                 registrado = nombre_profesional.strip().lower() in [str(n).strip().lower() for n in df_prof["Nombre"]]
             if not registrado:
                 st.error("El nombre ingresado no está registrado como profesional. Por favor regístrese primero en la pestaña correspondiente.")
             else:
-                # Validar otros campos obligatorios
-                campos_obligatorios = [utilidad_resp, eficiencia_resp, intencion_uso, satisfaccion_claridad, satisfaccion_diseño]
-                campos_vacios = any([str(c).strip() == '' for c in campos_obligatorios])
-                if campos_vacios:
-                    st.error("Por favor completá todas las respuestas obligatorias antes de enviar.")
+                utilidad_val = utilidad_map[utilidad_resp]
+                eficiencia_val = eficiencia_map[eficiencia_resp]
+                satisfaccion_claridad_val = satisfaccion_map[satisfaccion_claridad]
+                satisfaccion_diseño_val = diseño_map[satisfaccion_diseño]
+
+                # Buscar cédula y profesión en profesionales.csv
+                cedula = ''
+                profesion = ''
+                if os.path.exists(DATA_FILE_PROF):
+                    df_prof = pd.read_csv(DATA_FILE_PROF, encoding='utf-8-sig')
+                    match = df_prof[df_prof["Nombre"].str.strip().str.lower() == nombre_profesional.strip().lower()]
+                    if not match.empty:
+                        cedula = match.iloc[0]["Cédula"]
+                        profesion = match.iloc[0]["Profesión"]
+                nueva_fila = pd.DataFrame({
+                    "nombre_profesional": [nombre_profesional],
+                    "cedula_profesional": [cedula],
+                    "profesion_profesional": [profesion],
+                    "utilidad": [utilidad_val],
+                    "utilidad_opcion": [utilidad_resp],
+                    "eficiencia": [eficiencia_val],
+                    "eficiencia_opcion": [eficiencia_resp],
+                    "intencion_uso": [intencion_uso],
+                    "satisfaccion_claridad": [satisfaccion_claridad_val],
+                    "satisfaccion_claridad_opcion": [satisfaccion_claridad],
+                    "satisfaccion_diseño": [satisfaccion_diseño_val],
+                    "satisfaccion_diseño_opcion": [satisfaccion_diseño],
+                    "modificar_secciones": [modificar_secciones],
+                    "comentarios": [comentarios],
+                    "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+                })
+
+                if os.path.exists(FEEDBACK_FILE):
+                    df_feedback = pd.read_csv(FEEDBACK_FILE, encoding='utf-8-sig')
+                    df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
                 else:
-                    utilidad_val = utilidad_map[utilidad_resp]
-                    eficiencia_val = eficiencia_map[eficiencia_resp]
-                    satisfaccion_claridad_val = satisfaccion_map[satisfaccion_claridad]
-                    satisfaccion_diseño_val = diseño_map[satisfaccion_diseño]
+                    df_feedback = nueva_fila
+                df_feedback.to_csv(FEEDBACK_FILE, index=False, encoding='utf-8-sig')
+                st.success("¡Gracias! Tu feedback fue registrado correctamente!")
 
-                    # Buscar cédula y profesión en profesionales.csv
-                    cedula = ''
-                    profesion = ''
-                    if os.path.exists(DATA_FILE_PROF):
-                        df_prof = pd.read_csv(DATA_FILE_PROF)
-                        match = df_prof[df_prof["Nombre"].str.strip().str.lower() == nombre_profesional.strip().lower()]
-                        if not match.empty:
-                            cedula = match.iloc[0]["Cédula"]
-                            profesion = match.iloc[0]["Profesión"]
-                    nueva_fila = pd.DataFrame({
-                        "nombre_profesional": [nombre_profesional],
-                        "cedula_profesional": [cedula],
-                        "profesion_profesional": [profesion],
-                        "utilidad": [utilidad_val],
-                        "utilidad_opcion": [utilidad_resp],
-                        "eficiencia": [eficiencia_val],
-                        "eficiencia_opcion": [eficiencia_resp],
-                        "intencion_uso": [intencion_uso],
-                        "satisfaccion_claridad": [satisfaccion_claridad_val],
-                        "satisfaccion_claridad_opcion": [satisfaccion_claridad],
-                        "satisfaccion_diseño": [satisfaccion_diseño_val],
-                        "satisfaccion_diseño_opcion": [satisfaccion_diseño],
-                        "modificar_secciones": [modificar_secciones],
-                        "comentarios": [comentarios],
-                        "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-                    })
+                resumen_compacto = (
+                    f"Feedback App\n"
+                    f"Nombre del profesional: {nombre_profesional}\n"
+                    f"Utilidad: {utilidad_resp} ({utilidad_val}/5)\n"
+                    f"Eficiencia: {eficiencia_resp} ({eficiencia_val}/5)\n"
+                    f"Intención de uso: {intencion_uso}/10\n"
+                    f"Satisfacción claridad: {satisfaccion_claridad} ({satisfaccion_claridad_val}/5)\n"
+                    f"Satisfacción diseño: {satisfaccion_diseño} ({satisfaccion_diseño_val}/5)\n"
+                    f"Modificar secciones: {modificar_secciones}\n"
+                    f"Comentarios: {comentarios}"
+                )
+                st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
+                st.code(resumen_compacto, language=None)
 
-                    if os.path.exists(FEEDBACK_FILE):
-                        df_feedback = pd.read_csv(FEEDBACK_FILE)
-                        df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
-                    else:
-                        df_feedback = nueva_fila
-                    df_feedback.to_csv(FEEDBACK_FILE, index=False, encoding='utf-8-sig')
-                    st.success("¡Gracias! Tu feedback fue registrado correctamente!")
-
-                    resumen_compacto = (
-                        f"Feedback App\n"
-                        f"Nombre del profesional: {nombre_profesional}\n"
-                        f"Utilidad: {utilidad_resp} ({utilidad_val}/5)\n"
-                        f"Eficiencia: {eficiencia_resp} ({eficiencia_val}/5)\n"
-                        f"Intención de uso: {intencion_uso}/10\n"
-                        f"Satisfacción claridad: {satisfaccion_claridad} ({satisfaccion_claridad_val}/5)\n"
-                        f"Satisfacción diseño: {satisfaccion_diseño} ({satisfaccion_diseño_val}/5)\n"
-                        f"Modificar secciones: {modificar_secciones}\n"
-                        f"Comentarios: {comentarios}"
-                    )
-                    st.markdown('<h4>Resumen generado:</h4>', unsafe_allow_html=True)
-                    st.code(resumen_compacto, language=None)
-
-                    # Botón para copiar al portapapeles
-                    resumen_js = resumen_compacto.replace("'", "\\'").replace("\n", "\\n")
-                    copy_code = f"""
+                # Botón para copiar al portapapeles
+                resumen_js = resumen_compacto.replace("'", "\\'").replace("\n", "\\n")
+                copy_code = f"""
     <button id='copyBtn' style='background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;'>📋 Copiar feedback</button>
     <script>
     document.getElementById('copyBtn').onclick = function() {{
@@ -414,12 +421,12 @@ with tabs[10]:
     }}
     </script>
     """
-                    components.html(copy_code, height=80)
+                components.html(copy_code, height=80)
 
-                    # SOLO UN BOTÓN DE WHATSAPP (VERDE) - ELIMINAR EL SEGUNDO
-                    mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
-                    numero = "59898776605"
-                    js_code = f"""
+                # SOLO UN BOTÓN DE WHATSAPP (VERDE) - ELIMINAR EL SEGUNDO
+                mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
+                numero = "59898776605"
+                js_code = f"""
     <button id='wappBtn' style='background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;'>💬 Enviar feedback por WhatsApp</button>
     <script>
     document.getElementById('wappBtn').onclick = function() {{
@@ -428,7 +435,7 @@ with tabs[10]:
     }}
     </script>
     """
-                    components.html(js_code, height=120)
+                components.html(js_code, height=120)
 
 # ----------------------------
 # Pestaña 12: Acceso restringido para descarga de datos

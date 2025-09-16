@@ -26,8 +26,18 @@ columnas_deseadas = [
 
 # Filtrar solo las columnas que existen en el archivo
 columnas_finales = [col for col in columnas_deseadas if col in df.columns]
-df_limpio = df[columnas_finales]
+df_limpio = df[columnas_finales].copy()
 
-# Guardar el archivo limpio
+
+# Eliminar filas con datos obligatorios vacíos o nulos
+obligatorias = ["nombre_profesional", "utilidad", "eficiencia", "intencion_uso", "satisfaccion_claridad", "satisfaccion_diseño"]
+for col in obligatorias:
+    df_limpio = df_limpio[df_limpio[col].astype(str).str.strip() != ""]
+    df_limpio = df_limpio[df_limpio[col].notna()]
+
+
+# No eliminar duplicados, mantener todos los registros completos
+
+# Guardar el archivo limpio con todos los registros
 df_limpio.to_csv(output_file, index=False, encoding='utf-8-sig')
 print(f"Archivo limpio guardado en: {output_file}")
