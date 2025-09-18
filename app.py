@@ -410,10 +410,6 @@ with tabs[10]:
                 ]
                 columnas_finales = [col for col in columnas_deseadas if col in df_feedback.columns]
                 df_limpio = df_feedback[columnas_finales].copy()
-                obligatorias = ["nombre_profesional", "utilidad", "eficiencia", "intencion_uso", "satisfaccion_claridad", "satisfaccion_diseño"]
-                for col in obligatorias:
-                    df_limpio = df_limpio[df_limpio[col].astype(str).str.strip() != ""]
-                    df_limpio = df_limpio[df_limpio[col].notna()]
                 feedback_limpio_path = os.path.join(DATA_FOLDER, "feedback_app_limpio.csv")
                 df_limpio.to_csv(feedback_limpio_path, index=False, encoding='utf-8-sig')
                 # --- FIN LIMPIEZA AUTOMÁTICA ---
