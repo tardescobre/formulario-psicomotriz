@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.log
+*.tmp
+.git
+.gitignore
+.vscode/
+venv/
+.venv/
+.env
+**/.DS_Store
+**/Thumbs.db
+
+# Data backups you don't want in images
+**/legacy/
