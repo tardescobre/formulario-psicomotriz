@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Data artifacts (keep CSVs under control)
+*.tmp
+*.log

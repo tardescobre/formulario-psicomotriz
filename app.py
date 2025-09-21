@@ -5,6 +5,7 @@ from datetime import datetime
 import urllib.parse
 import streamlit.components.v1 as components
 import streamlit_authenticator as stauth
+import re
 
 # ----------------------------
 # Configuración de la página
@@ -24,6 +25,89 @@ if not os.path.exists(DATA_FOLDER):
 DATA_FILE_PROF = os.path.join(DATA_FOLDER, "profesionales.csv")
 PACIENTES_FILE = os.path.join(DATA_FOLDER, "pacientes.csv")
 FEEDBACK_FILE = os.path.join(DATA_FOLDER, "feedback_app.csv")
+
+# ----------------------------
+# Funciones de validación
+# ----------------------------
+def validar_y_limpiar_texto(texto, campo_nombre="campo"):
+    """
+    Valida y limpia texto para evitar problemas de CSV
+    """
+    if not texto or pd.isna(texto):
+        return ""
+    
+    texto = str(texto).strip()
+    
+    # 1. Eliminar caracteres problemáticos (sin tocar comas)
+    texto = texto.replace('"', "'")  # Reemplazar comillas dobles por simples
+    texto = texto.replace('\n', ' ')  # Saltos de línea por espacios
+    texto = texto.replace('\r', ' ')  # Retornos de carro por espacios
+    texto = texto.replace('\t', ' ')  # Tabs por espacios
+    
+    # 2. Espacios múltiples
+    texto = re.sub(r'\s+', ' ', texto)
+    
+    # 3. Validar longitud (ampliado)
+    if len(texto) > 2000:
+        texto = texto[:1997] + "..."
+    
+    return texto
+
+def guardar_feedback_seguro(datos_feedback, archivo_path):
+    """
+    Guarda feedback con validación robusta (limpieza mínima, escritura atómica, verificación)
+    """
+    # Validación básica de obligatorios y tipos
+    obligatorios = ['nombre_profesional', 'utilidad', 'eficiencia', 'intencion_uso', 
+                    'satisfaccion_claridad', 'satisfaccion_diseño']
+    errores = []
+    for campo in obligatorios:
+        if campo not in datos_feedback or str(datos_feedback[campo]).strip() == "":
+            errores.append(f"Campo obligatorio vacío: {campo}")
+    for campo in ['utilidad','eficiencia','intencion_uso','satisfaccion_claridad','satisfaccion_diseño']:
+        try:
+            v = float(datos_feedback.get(campo, 0))
+            if v < 0 or v > 10:
+                errores.append(f"{campo} debe estar entre 0 y 10")
+        except (TypeError, ValueError):
+            errores.append(f"{campo} debe ser número")
+    if errores:
+        raise ValueError("; ".join(errores))
+
+    # Limpiar campos de texto
+    datos_feedback['modificar_secciones'] = validar_y_limpiar_texto(
+        datos_feedback['modificar_secciones'], 'modificar_secciones'
+    )
+    datos_feedback['comentarios'] = validar_y_limpiar_texto(
+        datos_feedback['comentarios'], 'comentarios'
+    )
+    datos_feedback['nombre_profesional'] = validar_y_limpiar_texto(
+        datos_feedback['nombre_profesional'], 'nombre_profesional'
+    )
+    
+    # Convertir a DataFrame
+    nueva_fila_df = pd.DataFrame([datos_feedback])
+
+    # Leer archivo existente o crear nuevo
+    filas_antes = 0
+    if os.path.exists(archivo_path):
+        df_existente = pd.read_csv(archivo_path, encoding='utf-8-sig')
+        filas_antes = len(df_existente)
+        # Unir, preservando columnas existentes (no forzar estructura distinta)
+        df_final = pd.concat([df_existente, nueva_fila_df], ignore_index=True)
+    else:
+        df_final = nueva_fila_df
+
+    # Escritura atómica
+    tmp_path = f"{archivo_path}.tmp"
+    df_final.to_csv(tmp_path, index=False, encoding='utf-8-sig', quoting=1)
+    os.replace(tmp_path, archivo_path)
+
+    # Verificación post-guardado
+    df_check = pd.read_csv(archivo_path, encoding='utf-8-sig')
+    if len(df_check) != filas_antes + 1:
+        raise RuntimeError("Conteo de filas inesperado después de guardar")
+    return True
 
 # ----------------------------
 # Definición de pestañas
@@ -337,13 +421,11 @@ with tabs[10]:
             errores.append("Por favor ingrese su nombre y apellido (campo obligatorio).")
         if utilidad_resp == "" or eficiencia_resp == "" or satisfaccion_claridad == "" or satisfaccion_diseño == "" or intencion_uso is None:
             errores.append("Por favor completá todas las respuestas obligatorias antes de enviar.")
-        # Limitar comas y puntos en comentarios y modificar_secciones
-        if comentarios.strip() == "" or modificar_secciones.strip() == "":
-            errores.append("No se permiten comentarios o modificaciones vacíos.")
-        if comentarios.count(",") > 1 or comentarios.count(".") > 3:
-            errores.append("No se permiten más de una coma o más de tres puntos en los comentarios.")
-        if modificar_secciones.count(",") > 1 or modificar_secciones.count(".") > 3:
-            errores.append("No se permiten más de una coma o más de tres puntos en las modificaciones.")
+        # Validar contenido mínimo (menos restrictivo)
+        if comentarios.strip() == "":
+            errores.append("Por favor agregue algún comentario.")
+        if modificar_secciones.strip() == "":
+            errores.append("Por favor complete qué secciones modificaría.")
         if errores:
             for err in errores:
                 st.error(err)
@@ -370,50 +452,36 @@ with tabs[10]:
                     if not match.empty:
                         cedula = match.iloc[0]["Cédula"]
                         profesion = match.iloc[0]["Profesión"]
-                nueva_fila = pd.DataFrame({
-                    "nombre_profesional": [nombre_profesional],
-                    "cedula_profesional": [cedula],
-                    "profesion_profesional": [profesion],
-                    "utilidad": [utilidad_val],
-                    "utilidad_opcion": [utilidad_resp],
-                    "eficiencia": [eficiencia_val],
-                    "eficiencia_opcion": [eficiencia_resp],
-                    "intencion_uso": [intencion_uso],
-                    "satisfaccion_claridad": [satisfaccion_claridad_val],
-                    "satisfaccion_claridad_opcion": [satisfaccion_claridad],
-                    "satisfaccion_diseño": [satisfaccion_diseño_val],
-                    "satisfaccion_diseño_opcion": [satisfaccion_diseño],
-                    "modificar_secciones": [modificar_secciones],
-                    "comentarios": [comentarios],
-                    "fecha_envio": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-                })
+                # Preparar datos con validación automática
+                datos_feedback = {
+                    "nombre_profesional": nombre_profesional,
+                    "cedula_profesional": cedula,
+                    "profesion_profesional": profesion,
+                    "utilidad": utilidad_val,
+                    "utilidad_opcion": utilidad_resp,
+                    "eficiencia": eficiencia_val,
+                    "eficiencia_opcion": eficiencia_resp,
+                    "intencion_uso": intencion_uso,
+                    "satisfaccion_claridad": satisfaccion_claridad_val,
+                    "satisfaccion_claridad_opcion": satisfaccion_claridad,
+                    "satisfaccion_diseño": satisfaccion_diseño_val,
+                    "satisfaccion_diseño_opcion": satisfaccion_diseño,
+                    "modificar_secciones": modificar_secciones,
+                    "comentarios": comentarios,
+                    "fecha_envio": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
 
-                if os.path.exists(FEEDBACK_FILE):
+                # Guardar con validación automática
+                try:
+                    guardar_feedback_seguro(datos_feedback, FEEDBACK_FILE)
                     df_feedback = pd.read_csv(FEEDBACK_FILE, encoding='utf-8-sig')
-                    df_feedback = pd.concat([df_feedback, nueva_fila], ignore_index=True)
-                else:
-                    df_feedback = nueva_fila
-                df_feedback.to_csv(FEEDBACK_FILE, index=False, encoding='utf-8-sig')
-                # --- LIMPIEZA AUTOMÁTICA ---
-                columnas_deseadas = [
-                    'nombre_profesional',
-                    'utilidad',
-                    'eficiencia',
-                    'intencion_uso',
-                    'satisfaccion_claridad',
-                    'satisfaccion_diseño',
-                    'modificar_secciones',
-                    'comentarios',
-                    'fecha_envio',
-                    'cedula_profesional',
-                    'profesion_profesional'
-                ]
-                columnas_finales = [col for col in columnas_deseadas if col in df_feedback.columns]
-                df_limpio = df_feedback[columnas_finales].copy()
-                feedback_limpio_path = os.path.join(DATA_FOLDER, "feedback_app_limpio.csv")
-                df_limpio.to_csv(feedback_limpio_path, index=False, encoding='utf-8-sig')
-                # --- FIN LIMPIEZA AUTOMÁTICA ---
-                st.success("¡Gracias! Tu feedback fue registrado correctamente!")
+                except Exception as e:
+                    st.error(f"Error guardando feedback: {e}")
+                    df_feedback = None
+                if df_feedback is not None:
+                    # Guardado único y estructurado en FEEDBACK_FILE
+                    st.success("✅ ¡Gracias! Tu feedback fue registrado correctamente en el archivo único!")
+                    st.info("🛡️ El archivo CSV canónico mantiene columnas fijas y codificación UTF-8-BOM (compatible con Excel/GitHub).")
 
                 resumen_compacto = (
                     f"Feedback App\n"
@@ -521,18 +589,17 @@ with tabs[11]:
         else:
             st.info("ℹ️ El archivo profesionales.csv no existe o aún no se ha generado.")
 
-        # Descargar feedback_app_limpio.csv
-        feedback_limpio_path = os.path.join(DATA_FOLDER, "feedback_app_limpio.csv")
-        if os.path.exists(feedback_limpio_path):
-            df_feedback_limpio = pd.read_csv(feedback_limpio_path)
+        # Descargar archivo canónico de feedback
+        if os.path.exists(FEEDBACK_FILE):
+            df_feedback = pd.read_csv(FEEDBACK_FILE, encoding='utf-8-sig')
             st.download_button(
-                label="📊 Descargar respuestas del cuestionario (limpio)",
-                data=df_feedback_limpio.to_csv(index=False).encode('utf-8'),
-                file_name="feedback_app_limpio.csv",
+                label="📊 Descargar respuestas del cuestionario",
+                data=df_feedback.to_csv(index=False).encode('utf-8-sig'),
+                file_name="feedback_app.csv",
                 mime="text/csv",
-                key="download_feedback_limpio"
+                key="download_feedback"
             )
         else:
-            st.info("ℹ️ El archivo feedback_app_limpio.csv no existe o aún no se ha generado.")
+            st.info("ℹ️ Aún no hay respuestas de cuestionario guardadas.")
 
 
