@@ -31,18 +31,23 @@ FEEDBACK_FILE = os.path.join(DATA_FOLDER, "feedback_app.csv")
 # ----------------------------
 def validar_y_limpiar_texto(texto, campo_nombre="campo"):
     """
-    Valida y limpia texto para evitar problemas de CSV
+    Valida y limpia texto eliminando TODOS los caracteres especiales que causan problemas
     """
     if not texto or pd.isna(texto):
         return ""
     
     texto = str(texto).strip()
     
-    # 1. Eliminar caracteres problemáticos (sin tocar comas)
-    texto = texto.replace('"', "'")  # Reemplazar comillas dobles por simples
+    # 1. Eliminar TODOS los caracteres problemáticos para CSV
+    texto = texto.replace(',', ' ')   # ELIMINAR comas (causan división)
+    texto = texto.replace('"', ' ')   # ELIMINAR comillas dobles
+    texto = texto.replace("'", ' ')   # ELIMINAR comillas simples
+    texto = texto.replace(';', ' ')   # ELIMINAR punto y coma
     texto = texto.replace('\n', ' ')  # Saltos de línea por espacios
     texto = texto.replace('\r', ' ')  # Retornos de carro por espacios
     texto = texto.replace('\t', ' ')  # Tabs por espacios
+    texto = texto.replace('|', ' ')   # Pipes
+    texto = texto.replace('\\', ' ')  # Barras invertidas
     
     # 2. Espacios múltiples
     texto = re.sub(r'\s+', ' ', texto)
@@ -100,7 +105,23 @@ def guardar_feedback_seguro(datos_feedback, archivo_path):
 
     # Escritura atómica
     tmp_path = f"{archivo_path}.tmp"
-    df_final.to_csv(tmp_path, index=False, encoding='utf-8-sig', quoting=1)
+    # Limpiar TODOS los caracteres especiales y usar delimitador coma + QUOTE_NONE
+    df_final_clean = df_final.copy()
+    for col in df_final_clean.select_dtypes(include=['object']).columns:
+        df_final_clean[col] = (df_final_clean[col].astype(str)
+                              .str.replace(',', ' ')    # ELIMINAR comas
+                              .str.replace('"', ' ')    # ELIMINAR comillas dobles
+                              .str.replace("'", ' ')    # ELIMINAR comillas simples
+                              .str.replace(';', ' ')    # ELIMINAR punto y coma
+                              .str.replace('\n', ' ')   # Saltos de línea
+                              .str.replace('\r', ' ')   # Retornos de carro
+                              .str.replace('\t', ' ')   # Tabs
+                              .str.replace('|', ' ')    # Pipes
+                              .str.replace('\\', ' '))  # Barras invertidas
+    # Limpiar espacios múltiples
+    for col in df_final_clean.select_dtypes(include=['object']).columns:
+        df_final_clean[col] = df_final_clean[col].str.replace(r'\s+', ' ', regex=True).str.strip()
+    df_final_clean.to_csv(tmp_path, index=False, encoding='utf-8-sig', quoting=3)
     os.replace(tmp_path, archivo_path)
 
     # Verificación post-guardado
@@ -182,14 +203,51 @@ with tabs[1]:
     
     nombre_prof = st.text_input("Nombre completo", key="prof_nombre")
     profesion_prof = st.text_input("Profesión", key="prof_profesion")
-    cedula_prof = st.text_input("Cédula", key="prof_cedula")
+    cedula_prof = st.text_input("Cédula (solo números, exactamente 8 dígitos)", key="prof_cedula", 
+                               help="Ingrese solo números. Se eliminarán automáticamente letras y símbolos.")
+
+    # Validación en tiempo real de cédula
+    if cedula_prof:
+        # Eliminar todos los caracteres que no sean números
+        cedula_limpia = re.sub(r'[^0-9]', '', cedula_prof)
+        
+        if len(cedula_limpia) > 8:
+            st.warning("⚠️ La cédula uruguaya tiene exactamente 8 dígitos. Se tomarán los primeros 8.")
+            cedula_limpia = cedula_limpia[:8]
+        elif len(cedula_limpia) < 8 and len(cedula_limpia) > 0:
+            st.warning(f"⚠️ Faltan {8 - len(cedula_limpia)} dígitos. La cédula uruguaya tiene exactamente 8 dígitos.")
+        elif len(cedula_limpia) == 8:
+            st.success("✅ Cédula válida")
+            
+        # Mostrar la cédula limpia si hay cambios
+        if cedula_limpia != cedula_prof and cedula_limpia:
+            st.info(f"Cédula corregida: {cedula_limpia}")
 
     if st.button("Registrar datos profesionales", key="btn_registrar_prof"):
-        if nombre_prof and profesion_prof and cedula_prof:
+        # Validación final
+        cedula_final = re.sub(r'[^0-9]', '', cedula_prof) if cedula_prof else ""
+        
+        errores = []
+        if not nombre_prof or not nombre_prof.strip():
+            errores.append("Nombre completo es obligatorio")
+        if not profesion_prof or not profesion_prof.strip():
+            errores.append("Profesión es obligatoria")
+        if not cedula_final:
+            errores.append("Cédula es obligatoria")
+        elif len(cedula_final) != 8:
+            errores.append("La cédula debe tener exactamente 8 dígitos")
+        
+        if errores:
+            st.error("Errores encontrados:\n" + "\n".join(f"• {error}" for error in errores))
+        else:
+            # Limpiar datos antes de guardar
+            nombre_limpio = validar_y_limpiar_texto(nombre_prof, "nombre")
+            profesion_limpia = validar_y_limpiar_texto(profesion_prof, "profesion")
+            
             nueva_fila = pd.DataFrame({
-                "Nombre": [nombre_prof],
-                "Profesión": [profesion_prof],
-                "Cédula": [cedula_prof],
+                "Nombre": [nombre_limpio],
+                "Profesión": [profesion_limpia],
+                "Cédula": [cedula_final],
                 "Fecha registro": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
             })
             if os.path.exists(DATA_FILE_PROF):
@@ -198,9 +256,11 @@ with tabs[1]:
             else:
                 df = nueva_fila
             df.to_csv(DATA_FILE_PROF, index=False, encoding='utf-8-sig')
-            st.success(f"Gracias {nombre_prof}, tus datos fueron registrados correctamente.")
-        else:
-            st.error("Por favor completá todos los campos del profesional.")
+            st.success(f"Gracias {nombre_limpio}, tus datos fueron registrados correctamente con cédula: {cedula_final}")
+            # Limpiar formulario
+            st.session_state.prof_nombre = ""
+            st.session_state.prof_profesion = ""
+            st.session_state.prof_cedula = ""
 
     st.markdown("En la pestaña siguiente comienza el prototipo de formulario para cada paciente.", unsafe_allow_html=True)
 
