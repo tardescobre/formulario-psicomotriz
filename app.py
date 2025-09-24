@@ -27,6 +27,69 @@ PACIENTES_FILE = os.path.join(DATA_FOLDER, "pacientes.csv")
 FEEDBACK_FILE = os.path.join(DATA_FOLDER, "feedback_app.csv")
 
 # ----------------------------
+# Inicialización de archivos CSV
+# ----------------------------
+def inicializar_archivos_csv():
+    """
+    Inicializa los archivos CSV necesarios si no existen.
+    Esto es crucial para Streamlit Cloud donde los archivos no existen inicialmente.
+    """
+    # Profesionales CSV
+    if not os.path.exists(DATA_FILE_PROF):
+        df_prof = pd.DataFrame(columns=["Nombre", "Profesión", "Cédula", "Fecha registro"])
+        df_prof.to_csv(DATA_FILE_PROF, index=False, encoding='utf-8-sig')
+    
+    # Pacientes CSV
+    if not os.path.exists(PACIENTES_FILE):
+        df_pacientes = pd.DataFrame(columns=["Nombre", "Escolaridad", "Fecha", "Hora"])
+        df_pacientes.to_csv(PACIENTES_FILE, index=False, encoding='utf-8-sig')
+    
+    # Feedback CSV
+    if not os.path.exists(FEEDBACK_FILE):
+        df_feedback = pd.DataFrame(columns=[
+            "nombre_profesional", "utilidad", "utilidad_opcion", "eficiencia", 
+            "eficiencia_opcion", "intencion_uso", "satisfaccion_claridad", 
+            "satisfaccion_claridad_opcion", "satisfaccion_diseño", 
+            "satisfaccion_diseño_opcion", "modificar_secciones", "comentarios", 
+            "fecha_envio", "cedula_profesional", "profesion_profesional"
+        ])
+        df_feedback.to_csv(FEEDBACK_FILE, index=False, encoding='utf-8-sig')
+
+# Inicializar archivos al cargar la app
+inicializar_archivos_csv()
+
+# ----------------------------
+# Funciones auxiliares para CSV
+# ----------------------------
+def leer_csv_seguro(archivo_path, columnas_default=None):
+    """
+    Lee un archivo CSV de forma segura, creándolo si no existe.
+    """
+    try:
+        if os.path.exists(archivo_path):
+            df = pd.read_csv(archivo_path, encoding='utf-8-sig')
+            # Asegurar que tenga las columnas necesarias
+            if columnas_default:
+                for col in columnas_default:
+                    if col not in df.columns:
+                        df[col] = ""
+            return df
+        else:
+            # Si no existe, crear DataFrame vacío con columnas
+            if columnas_default:
+                df = pd.DataFrame(columns=columnas_default)
+                df.to_csv(archivo_path, index=False, encoding='utf-8-sig')
+                return df
+            else:
+                return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error al leer archivo {archivo_path}: {str(e)}")
+        if columnas_default:
+            return pd.DataFrame(columns=columnas_default)
+        else:
+            return pd.DataFrame()
+
+# ----------------------------
 # Funciones de validación
 # ----------------------------
 def validar_y_limpiar_texto(texto, campo_nombre="campo"):
@@ -96,7 +159,7 @@ def guardar_feedback_seguro(datos_feedback, archivo_path):
     # Leer archivo existente o crear nuevo
     filas_antes = 0
     if os.path.exists(archivo_path):
-        df_existente = pd.read_csv(archivo_path, encoding='utf-8-sig')
+        df_existente = leer_csv_seguro(archivo_path)
         filas_antes = len(df_existente)
         # Unir, preservando columnas existentes (no forzar estructura distinta)
         df_final = pd.concat([df_existente, nueva_fila_df], ignore_index=True)
@@ -125,7 +188,7 @@ def guardar_feedback_seguro(datos_feedback, archivo_path):
     os.replace(tmp_path, archivo_path)
 
     # Verificación post-guardado
-    df_check = pd.read_csv(archivo_path, encoding='utf-8-sig')
+    df_check = leer_csv_seguro(archivo_path)
     if len(df_check) != filas_antes + 1:
         raise RuntimeError("Conteo de filas inesperado después de guardar")
     return True
@@ -251,7 +314,7 @@ with tabs[1]:
                 "Fecha registro": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
             })
             if os.path.exists(DATA_FILE_PROF):
-                df = pd.read_csv(DATA_FILE_PROF)
+                df = leer_csv_seguro(DATA_FILE_PROF, ["Nombre", "Profesión", "Cédula", "Fecha registro"])
                 df = pd.concat([df, nueva_fila], ignore_index=True)
             else:
                 df = nueva_fila
@@ -272,14 +335,12 @@ with tabs[2]:
     
     columnas = ["Nombre", "Escolaridad", "Fecha", "Hora"]
     
-    if os.path.exists(PACIENTES_FILE):
-        df_pacientes = pd.read_csv(PACIENTES_FILE)
-        for col in columnas:
-            if col not in df_pacientes.columns:
-                df_pacientes[col] = ""
-        df_pacientes = df_pacientes[columnas]
-    else:
-        df_pacientes = pd.DataFrame(columns=columnas)
+    df_pacientes = leer_csv_seguro(PACIENTES_FILE, columnas)
+    # Asegurar que tiene todas las columnas necesarias
+    for col in columnas:
+        if col not in df_pacientes.columns:
+            df_pacientes[col] = ""
+    df_pacientes = df_pacientes[columnas]
 
     st.subheader("Pacientes registrados (editable)")
     edited_df = st.data_editor(df_pacientes, num_rows="dynamic", use_container_width=True, key="pacientes_editor")
@@ -420,7 +481,7 @@ with tabs[8]:
 with tabs[9]:
     st.header("📋 Lista de pacientes registrados")
     if os.path.exists(PACIENTES_FILE):
-        df_pacientes = pd.read_csv(PACIENTES_FILE)
+        df_pacientes = leer_csv_seguro(PACIENTES_FILE, ["Nombre", "Escolaridad", "Fecha", "Hora"])
         columnas = ["Nombre", "Escolaridad", "Fecha", "Hora"]
         for col in columnas:
             if col not in df_pacientes.columns:
@@ -493,7 +554,7 @@ with tabs[10]:
             # Verificar si el profesional está registrado
             registrado = False
             if os.path.exists(DATA_FILE_PROF):
-                df_prof = pd.read_csv(DATA_FILE_PROF, encoding='utf-8-sig')
+                df_prof = leer_csv_seguro(DATA_FILE_PROF, ["Nombre", "Profesión", "Cédula", "Fecha registro"])
                 registrado = nombre_profesional.strip().lower() in [str(n).strip().lower() for n in df_prof["Nombre"]]
             if not registrado:
                 st.error("El nombre ingresado no está registrado como profesional. Por favor regístrese primero en la pestaña correspondiente.")
@@ -507,7 +568,7 @@ with tabs[10]:
                 cedula = ''
                 profesion = ''
                 if os.path.exists(DATA_FILE_PROF):
-                    df_prof = pd.read_csv(DATA_FILE_PROF, encoding='utf-8-sig')
+                    df_prof = leer_csv_seguro(DATA_FILE_PROF, ["Nombre", "Profesión", "Cédula", "Fecha registro"])
                     match = df_prof[df_prof["Nombre"].str.strip().str.lower() == nombre_profesional.strip().lower()]
                     if not match.empty:
                         cedula = match.iloc[0]["Cédula"]
@@ -534,7 +595,7 @@ with tabs[10]:
                 # Guardar con validación automática
                 try:
                     guardar_feedback_seguro(datos_feedback, FEEDBACK_FILE)
-                    df_feedback = pd.read_csv(FEEDBACK_FILE, encoding='utf-8-sig')
+                    df_feedback = leer_csv_seguro(FEEDBACK_FILE)
                 except Exception as e:
                     st.error(f"Error guardando feedback: {e}")
                     df_feedback = None
@@ -638,7 +699,7 @@ with tabs[11]:
         
         # Descargar profesionales.csv
         if os.path.exists(DATA_FILE_PROF):
-            df_prof = pd.read_csv(DATA_FILE_PROF)
+            df_prof = leer_csv_seguro(DATA_FILE_PROF, ["Nombre", "Profesión", "Cédula", "Fecha registro"])
             st.download_button(
                 label="📋 Descargar registro de profesionales",
                 data=df_prof.to_csv(index=False).encode('utf-8'),
@@ -651,7 +712,7 @@ with tabs[11]:
 
         # Descargar archivo canónico de feedback
         if os.path.exists(FEEDBACK_FILE):
-            df_feedback = pd.read_csv(FEEDBACK_FILE, encoding='utf-8-sig')
+            df_feedback = leer_csv_seguro(FEEDBACK_FILE)
             st.download_button(
                 label="📊 Descargar respuestas del cuestionario",
                 data=df_feedback.to_csv(index=False).encode('utf-8-sig'),
