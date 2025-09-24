@@ -10,6 +10,9 @@ venv/
 .env/
 .venv/
 
+# Streamlit secrets (NUNCA subir al repositorio)
+.streamlit/secrets.toml
+
 # OS / Editor
 .DS_Store
 Thumbs.db

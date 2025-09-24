@@ -633,7 +633,11 @@ with tabs[10]:
 
                 # SOLO UN BOTÓN DE WHATSAPP (VERDE) - ELIMINAR EL SEGUNDO
                 mensaje_codificado = urllib.parse.quote_plus(resumen_compacto)
-                numero = "59898776605"
+                # Obtener número desde secrets
+                try:
+                    numero = st.secrets["whatsapp"]["numero"]
+                except KeyError:
+                    numero = "59898776605"  # Fallback por compatibilidad
                 js_code = f"""
     <button id='wappBtn' style='background-color:#25D366;color:white;padding:1em 2em;font-size:1.2em;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:1em;'>💬 Enviar feedback por WhatsApp</button>
     <script>
@@ -673,7 +677,15 @@ with tabs[11]:
                 login_button = st.form_submit_button("🚀 Iniciar sesión")
                 
                 if login_button:
-                    if username == "diego@ejemplo.com" and password == "diego123":
+                    # Obtener credenciales desde secrets
+                    try:
+                        admin_username = st.secrets["admin"]["username"]
+                        admin_password = st.secrets["admin"]["password"]
+                    except KeyError:
+                        st.error("❌ Error de configuración del sistema. Contacte al administrador.")
+                        admin_username = admin_password = None
+                    
+                    if admin_username and username == admin_username and password == admin_password:
                         st.session_state.logged_in = True
                         st.session_state.show_login = False
                         st.success("¡Login exitoso! Bienvenido Diego.")
