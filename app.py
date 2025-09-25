@@ -681,8 +681,16 @@ with tabs[11]:
                     try:
                         admin_username = st.secrets["admin"]["username"]
                         admin_password = st.secrets["admin"]["password"]
-                    except KeyError:
-                        st.error("❌ Error de configuración del sistema. Contacte al administrador.")
+                        # DEBUG TEMPORAL - mostrar información para diagnosticar
+                        st.info(f"🔍 Username configurado: '{admin_username}' (longitud: {len(admin_username)})")
+                        st.info(f"🔍 Password configurado: longitud {len(admin_password)}")
+                        st.info(f"🔍 Username ingresado: '{username}' (longitud: {len(username)})")
+                        st.info(f"🔍 Password ingresado: longitud {len(password)}")
+                    except KeyError as e:
+                        st.error(f"❌ Error de configuración: falta la clave {e}")
+                        admin_username = admin_password = None
+                    except Exception as e:
+                        st.error(f"❌ Error leyendo secrets: {e}")
                         admin_username = admin_password = None
                     
                     if admin_username and username == admin_username and password == admin_password:
